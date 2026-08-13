@@ -569,8 +569,11 @@ function secaoMarcas() {
          do CPI). É essa impressão que a frase desfaz, e desfaz-se numa linha. Tem de
          ficar aqui, junto dos símbolos: Gillette (C-228/03 § 46) manda olhar à
          apresentação global, e um aviso noutra página não corrige o que se lê nesta. -->
-    <p class="marcas__aviso">(Stand independente: não somos concessionário autorizado de nenhuma
-      destas marcas.)</p>
+    <!-- Leva a classe nota-chamada de propósito, e não uma cópia do estilo: assim
+         este aviso e a nota do custo da chamada não podem divergir. Quem mudar uma
+         muda as duas, que é o que foi pedido. -->
+    <p class="nota-chamada marcas__aviso">(Stand independente: não somos concessionário autorizado
+      de nenhuma destas marcas.)</p>
   </div>
 </section>`;
 }

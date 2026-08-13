@@ -521,9 +521,11 @@ body.menu-aberto { overflow: hidden; }
   color: var(--claro);
 }
 
-/* Escrito como a nota do custo da chamada: entre parênteses, e sem `font-size`
-   nem `color` para ficar do tamanho e da cor do texto em volta. Saiu-lhe também a
-   linha separadora, porque um aparte entre parênteses não precisa de moldura. */
+/* O tamanho e a cor vêm da classe `nota-chamada`, que este elemento também leva
+   — é a mesma letra miúda entre parênteses, e ficam presas uma à outra de
+   propósito. Aqui só se ajusta o que é próprio deste sítio: a largura de leitura
+   e o espaço acima. Não declarar `font-size` nem `color`, senão as duas
+   divergem. */
 .marcas__aviso { max-width: 82ch; margin-top: 1.2rem; line-height: 1.55; }
 
 /* -------------------------------------------------------------- lightbox */
