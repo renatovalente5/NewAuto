@@ -311,4 +311,110 @@
       cookies.hidden = true;
     }));
   }
+
+  /* ------------------------------------------------------------------------
+     7. Carrocel das marcas.
+
+     Scroll nativo, não `transform`: já foi medido noutro projecto que ligações
+     dentro de uma faixa animada por `transform` não são clicáveis, porque o alvo
+     desliza debaixo do cursor entre o `mousedown` e o `mouseup`.
+
+     As setas e o movimento só aparecem se houver mais marcas do que cabem. Com
+     sete marcas num ecrã largo cabe tudo numa linha, e nesse caso um carrocel não
+     acrescenta informação — esconde-a. Quando o stand tiver vinte marcas, isto
+     passa a andar sozinho sem ninguém mexer no código.
+
+     O movimento é feito aqui e não em CSS de propósito: a regra global de
+     `prefers-reduced-motion` corta a duração das animações para .01ms sem lhes
+     tocar nas iterações, o que numa animação infinita não a pára — acelera-a até
+     piscar. Em JavaScript, «menos movimento» pode significar movimento nenhum.
+  ------------------------------------------------------------------------ */
+  const fila = $('#marcas');
+  if (fila) {
+    const setas = $('#marcas-setas');
+    const antes = $('#marcas-antes');
+    const depois = $('#marcas-depois');
+    const btnPausa = $('#marcas-pausa');
+    const menosMovimento = matchMedia('(prefers-reduced-motion: reduce)');
+
+    let agendadoMarcas = false;
+    const transborda = () => fila.scrollWidth - fila.clientWidth > 2;
+
+    function estado() {
+      const tem = transborda();
+      if (setas) setas.hidden = !tem;
+      if (antes) antes.disabled = fila.scrollLeft <= 2;
+      if (depois) depois.disabled = fila.scrollLeft >= fila.scrollWidth - fila.clientWidth - 2;
+      return tem;
+    }
+
+    const salto = () => Math.max(160, Math.round(fila.clientWidth * 0.8));
+    antes?.addEventListener('click', () => fila.scrollBy({ left: -salto(), behavior: 'smooth' }));
+    depois?.addEventListener('click', () => fila.scrollBy({ left: salto(), behavior: 'smooth' }));
+
+    fila.addEventListener('scroll', () => {
+      if (agendadoMarcas) return;
+      agendadoMarcas = true;
+      requestAnimationFrame(() => { agendadoMarcas = false; estado(); });
+    });
+    addEventListener('resize', estado);
+    estado();
+
+    /* ---- movimento automático ---- */
+    let paradoPeloUtilizador = false;   // botão de pausa: decisão explícita, fica
+    let sobre = false;                  // rato em cima ou foco dentro: suspende
+    let visivel = true;                 // secção fora do ecrã: não gasta bateria
+    let sentido = 1;
+    let ultimo = 0;
+    const VELOCIDADE = 26;              // px por segundo
+
+    const podeAndar = () => transborda() && !menosMovimento.matches
+      && !paradoPeloUtilizador && !sobre && visivel;
+
+    function passo(agora) {
+      if (!ultimo) ultimo = agora;
+      const dt = Math.min((agora - ultimo) / 1000, 0.05);
+      ultimo = agora;
+
+      if (podeAndar()) {
+        const limite = fila.scrollWidth - fila.clientWidth;
+        /* Chega ao fim e volta para trás. Uma volta contínua exigiria duplicar
+           os logótipos, e a segunda cópia é exactamente o que o auditor recusa. */
+        if (fila.scrollLeft >= limite - 1) sentido = -1;
+        else if (fila.scrollLeft <= 1) sentido = 1;
+        fila.scrollBy({ left: sentido * VELOCIDADE * dt, behavior: 'instant' });
+      }
+      requestAnimationFrame(passo);
+    }
+
+    function mostrarPausa() {
+      if (!btnPausa) return;
+      btnPausa.hidden = !(transborda() && !menosMovimento.matches);
+    }
+
+    /* O ícone troca por CSS, a partir do `aria-pressed` — assim o estado que o
+       leitor de ecrã anuncia e o que se vê no ecrã são a mesma coisa, e não há
+       SVG escrito dentro do JavaScript. */
+    btnPausa?.addEventListener('click', () => {
+      paradoPeloUtilizador = !paradoPeloUtilizador;
+      btnPausa.setAttribute('aria-pressed', String(paradoPeloUtilizador));
+      btnPausa.setAttribute('aria-label', paradoPeloUtilizador
+        ? 'Retomar o movimento das marcas' : 'Parar o movimento das marcas');
+    });
+
+    fila.addEventListener('pointerenter', () => { sobre = true; });
+    fila.addEventListener('pointerleave', () => { sobre = false; });
+    fila.addEventListener('focusin', () => { sobre = true; });
+    fila.addEventListener('focusout', () => { sobre = false; });
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => { visivel = e.isIntersecting; })
+        .observe(fila);
+    }
+
+    menosMovimento.addEventListener('change', mostrarPausa);
+    addEventListener('resize', mostrarPausa);
+    mostrarPausa();
+    requestAnimationFrame(passo);
+  }
 })();

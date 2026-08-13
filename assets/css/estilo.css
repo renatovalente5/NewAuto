@@ -451,6 +451,100 @@ body.menu-aberto { overflow: hidden; }
   .viatura__lado { position: static; }
 }
 
+/* ------------------------------------------------------ marcas em stock */
+/* Carrocel de logótipos, construído sobre SCROLL NATIVO e não sobre `transform`.
+
+   A razão é medida, não teórica: num projecto anterior um marquee animado com
+   `transform` tornou as ligações lá dentro impossíveis de clicar — o alvo
+   desloca-se debaixo do cursor entre o `mousedown` e o `mouseup`. Com scroll
+   nativo o conteúdo não se move sozinho debaixo do dedo, o arrastar é o do
+   sistema, e o teclado navega com as setas de graça.
+
+   Também não há faixa duplicada. Um marquee infinito precisa de uma segunda
+   cópia dos logótipos, que tem de ser escondida dos leitores de ecrã com
+   `aria-hidden` — e o auditor deste projecto não conhece `aria-hidden`, pelo que
+   recusaria a publicação por «ligação sem nome acessível» (auditar.mjs, regra 5).
+   Pôr `aria-label` nos duplicados passaria o portão mas faria o leitor de ecrã
+   anunciar catorze marcas onde há sete.
+
+   E não há animação CSS infinita, por uma terceira razão medida: a regra global
+   de `prefers-reduced-motion` deste site (linha 86) corta a *duração* das
+   animações para .01ms sem lhes tocar nas iterações. Numa animação infinita isso
+   não a pára — transforma-a num estroboscópio. Quem pede menos movimento
+   receberia meia-pista a piscar. O movimento automático desta secção é feito em
+   JavaScript, com `scrollBy`, precisamente para poder ser desligado em condições
+   em vez de ser acelerado até piscar. */
+.secao--marcas .marcas {
+  display: flex; gap: .7rem; margin-top: 1.8rem;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity; scroll-behavior: smooth;
+  scrollbar-width: none; padding-bottom: .2rem;
+}
+.secao--marcas .marcas::-webkit-scrollbar { display: none; }
+/* `justify-content: center` está fora de questão num contentor que rola: quando
+   o conteúdo transborda, o início fica inalcançável em todos os motores. */
+/* `flex-grow: 1` com `flex-shrink: 0`: quando as marcas cabem, esticam e enchem a
+   linha — sem isto sete chips ocupavam 880 px de 1224 e a secção parecia
+   inacabada. Quando não cabem, não há espaço livre para distribuir, não esticam,
+   e o contentor passa a rolar. Um só valor serve os dois estados. */
+.marcas__item { flex: 1 0 auto; scroll-snap-align: start; }
+
+.marcas__ligacao {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .55rem; width: 7.5rem; min-height: 6.4rem; padding: 1rem .6rem;
+  background: var(--carvao-2); border: 1px solid var(--carvao-3);
+  border-radius: var(--raio); color: var(--claro-2);
+  text-decoration: none; transition: color .2s, border-color .2s, background .2s;
+}
+.marcas__ligacao:hover { color: var(--claro); border-color: var(--carvao-4); background: var(--carvao-3); }
+
+/* O símbolo é pintado com a cor do texto através de uma máscara, para ficar
+   monocromático sem redesenhar ficheiro nenhum e sem 25 SVG dentro do HTML. */
+.marcas__simbolo {
+  width: 2.2rem; height: 2.2rem; flex: none; background: currentColor;
+  -webkit-mask: var(--simbolo) center / contain no-repeat;
+  mask: var(--simbolo) center / contain no-repeat;
+}
+.marcas__nome { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; text-align: center; }
+/* Marca sem ficheiro de símbolo: o nome ocupa o lugar dele, com o mesmo peso
+   visual, para a fila não ficar com um buraco. */
+.marcas__ligacao--nome .marcas__nome {
+  font-size: .92rem; letter-spacing: .02em; text-transform: none; font-weight: 700;
+  color: var(--claro);
+}
+
+.marcas__setas { display: flex; gap: .5rem; }
+/* Numa linha estreita os três botões TÊM de ficar numa linha só sua. Deixar isso
+   ao critério do `flex-wrap` faz a decisão depender da largura do título, que muda
+   com o texto e com o `clamp()` em unidades de viewport: medi 141 px de botões
+   contra 354 px de linha e concluí que quebrava, mas num render real de 390 px não
+   quebrou e dois dos três botões ficaram cortados pela direita, invisíveis e sem
+   fazer a página transbordar — falha silenciosa. Com `flex-basis: 100%` a quebra
+   é certa, seja qual for o título que o cliente escreva. */
+@media (max-width: 700px) {
+  .secao--marcas .marcas__setas { flex: 0 0 100%; justify-content: flex-start; margin-top: .2rem; }
+}
+.marcas__seta {
+  display: grid; place-items: center; width: 2.6rem; height: 2.6rem; padding: 0;
+  background: var(--carvao-2); border: 1px solid var(--carvao-3);
+  border-radius: 50%; color: var(--claro-2); cursor: pointer;
+}
+.marcas__seta svg { width: 1.1rem; height: 1.1rem; }
+.marcas__seta:hover:not(:disabled) { color: var(--claro); border-color: var(--carvao-4); }
+.marcas__seta:disabled { opacity: .35; cursor: default; }
+/* O ícone do botão de pausa segue o `aria-pressed`, para o que se vê e o que o
+   leitor de ecrã anuncia serem a mesma coisa — e para não haver SVG dentro do
+   JavaScript. */
+.marcas__ic { display: grid; place-items: center; }
+.marcas__seta--pausa[aria-pressed="false"] .marcas__ic--toca { display: none; }
+.marcas__seta--pausa[aria-pressed="true"] .marcas__ic--pausa { display: none; }
+
+.marcas__aviso {
+  max-width: 82ch; margin-top: 1.6rem; padding-top: 1.1rem;
+  border-top: 1px solid var(--carvao-3);
+  font-size: .875rem; line-height: 1.55; color: var(--claro-2);
+}
+
 /* -------------------------------------------------------------- lightbox */
 .lightbox { border: 0; padding: 0; background: transparent; max-width: 100vw; max-height: 100vh; width: 100%; height: 100%; }
 .lightbox::backdrop { background: rgba(10, 10, 10, .94); }

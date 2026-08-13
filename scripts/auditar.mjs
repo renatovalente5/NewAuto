@@ -242,6 +242,57 @@ const noDisco = paginas.map((p) => rel(p).replace(/index\.html$/, '')).filter((p
 for (const p of noDisco) if (!noMapa.includes(p)) mal('sitemap.xml', `falta ${p}`);
 for (const p of noMapa) if (!noDisco.includes(p)) mal('sitemap.xml', `${p} não existe`);
 
+/* 15b. a secção das marcas na página inicial
+
+   Três coisas que se degradam em silêncio se ninguém as vigiar:
+
+   a) O ESCLARECIMENTO. É o que separa o uso referencial lícito (art. 254.º al. c)
+      do CPI, art. 14.º n.º 1 al. c) do Reg. UE 2017/1001, TJUE BMW/Deenik C-63/97)
+      de dar a impressão de pertencer à rede oficial da marca. Gillette (C-228/03
+      § 46) manda olhar à apresentação global, por isso tem de estar DENTRO da
+      secção — não no rodapé nem nos Termos. Se alguém o apagar, a mitigação
+      desaparece e ninguém repara.
+
+   b) O FICHEIRO DO SÍMBOLO. Os símbolos são pintados por `mask-image`. Uma máscara
+      que aponte para um ficheiro inexistente não dá erro nenhum: desenha um
+      quadrado vazio. Aqui confere-se que cada `url()` da secção existe mesmo.
+
+   c) A MARCA TEM DE TER STOCK. Cada símbolo liga para `viaturas/?marca=X`, e esse
+      filtro é do lado do cliente: medido, uma marca sem viaturas disponíveis faz
+      o parâmetro ser ignorado em silêncio e a montra mostra o stock todo, em vez
+      de dizer que não há nenhuma. */
+{
+  const html = readFileSync(join(SAIDA, 'index.html'), 'utf8');
+  const achada = html.match(/<section class="secao secao--marcas">[\s\S]*?<\/section>/);
+  const secao = achada ? achada[0] : null;
+  if (secao) {
+    /* Comparar com o texto normalizado, não com o HTML cru: a frase está escrita
+       em várias linhas no gerador, e uma expressão que exija um espaço único
+       entre duas palavras falha por causa da indentação. Já aconteceu neste
+       auditor com o preço formatado. */
+    const texto = secao.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    if (!/stand independente de autom[óo]veis usados/i.test(texto)
+      || !/n[ãa]o somos concession[áa]rio/i.test(texto)) {
+      mal('/index.html', 'a secção das marcas não traz o esclarecimento de que a NewAuto não é concessionário autorizado (uso referencial: CPI art. 254.º al. c), TJUE C-228/03)');
+    }
+
+    for (const [, url] of secao.matchAll(/--simbolo:url\('([^']+)'\)/g)) {
+      const alvo = join(SAIDA, url.slice(PREFIXO.length));
+      if (!existsSync(alvo)) mal('/index.html', `o símbolo de marca ${url} não existe — a máscara desenharia um quadrado vazio`);
+    }
+
+    const comStock = new Set(readdirSync(join(RAIZ, 'data/viaturas'))
+      .filter((x) => x.endsWith('.json'))
+      .map((x) => JSON.parse(readFileSync(join(RAIZ, 'data/viaturas', x), 'utf8')))
+      .filter((v) => v.estado !== 'vendida' && !v.oculta)
+      .map((v) => v.marca));
+    for (const [, val] of secao.matchAll(/\?marca=([^"]+)"/g)) {
+      const m = decodeURIComponent(val);
+      if (!comStock.has(m)) mal('/index.html', `a secção das marcas mostra "${m}", que não tem viaturas disponíveis — o filtro seria ignorado e a montra mostrava tudo`);
+    }
+  }
+}
+
 /* 15. peso da primeira página */
 const inicio = readFileSync(join(SAIDA, 'index.html'), 'utf8');
 const kb = (p) => Math.round(statSync(join(SAIDA, p)).size / 102.4) / 10;
