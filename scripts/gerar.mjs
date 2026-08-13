@@ -237,7 +237,9 @@ function rodape() {
           <li>${ic.zap}<span><a href="https://wa.me/${def.contactos.whatsapp}" target="_blank" rel="noopener">${esc(def.contactos.whatsapp_texto)}</a>
             <small>WhatsApp ${NOTA_CHAMADA}</small></span></li>
           <li>${ic.pin}<span>${esc(def.local.morada)}<br>${esc(def.local.codigo_postal)} ${esc(def.local.localidade)}</span></li>
-          <li>${ic.relogio}<span>${def.horario.linhas.map((h) => `${esc(h.dias)}: ${esc(h.horas)}`).join('<br>')}</span></li>
+          <!-- O horário saiu do rodapé a pedido. Continua na página de contactos
+               e no openingHoursSpecification do AutoDealer, que é de onde a
+               Google o lê para a ficha do negócio. -->
         </ul>
       </div>
     </div>
