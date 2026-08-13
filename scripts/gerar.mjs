@@ -399,8 +399,21 @@ const FICHA = [
   ['Modelo', (v) => v.modelo],
   ['Versão', (v) => v.versao],
   ['Matrícula', (v) => v.matricula],
-  ['Mês/ano da matrícula', (v) => `${v.mes_matricula}/${v.ano_matricula}`],
-  ['Ano de construção', (v) => v.ano_construcao],
+  /* UMA linha em vez de duas, mas com os dois elementos que a lei exige.
+
+     O artigo 2.º n.º 1 do DL 74/93 obriga a indicar, na alínea c), o «ano de
+     construção, conforme o respectivo livrete» e, na alínea d), a «data de
+     matrícula, conforme o respectivo livrete». São dois dos sete elementos
+     obrigatórios, e a falta deles é contra-ordenação económica fiscalizada pela
+     ASAE — não podem sair da ficha.
+
+     O que podia sair era a confusão: havia duas linhas quase iguais, «Mês/ano da
+     matrícula: 06/2018» e «Ano de construção: 2018», que a quem compra parecem a
+     mesma coisa dita duas vezes. Agora é uma linha só, chamada «Ano», com o ano
+     de construção à frente e a data da matrícula entre parênteses. Quando os dois
+     anos diferem — carro construído num ano e matriculado no seguinte — a linha
+     mostra-o, que é justamente a informação que a lei quer que o comprador veja. */
+  ['Ano', (v) => `${v.ano_construcao} (matrícula ${v.mes_matricula}/${v.ano_matricula})`],
   ['Quilómetros', (v) => km(v.quilometros)],
   ['Combustível', (v) => v.combustivel],
   ['Caixa', (v) => v.caixa],

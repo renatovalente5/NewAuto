@@ -222,6 +222,42 @@ for (const f of paginas) {
   }
 }
 
+/* 12b. o ano de construção e a data da matrícula têm de aparecer NA PÁGINA
+
+   A regra 12 verifica que os campos existem nos dados. Esta verifica que chegam ao
+   anúncio, que é onde a lei se aplica: o art. 2.º n.º 1 do DL 74/93 obriga a
+   indicar o ano de construção (al. c) e a data da matrícula (al. d) na publicidade
+   a usados. As duas linhas da ficha foram fundidas numa só chamada «Ano», e uma
+   fusão é precisamente o tipo de mudança em que um dos dois elementos se perde sem
+   ninguém dar por isso. */
+{
+  for (const f of readdirSync(join(RAIZ, 'data/viaturas')).filter((x) => x.endsWith('.json'))) {
+    const v = JSON.parse(readFileSync(join(RAIZ, 'data/viaturas', f), 'utf8'));
+    if (v.oculta) continue;
+    const pag = join(SAIDA, 'viaturas', v.slug, 'index.html');
+    if (!existsSync(pag)) continue;
+    const h = readFileSync(pag, 'utf8');
+    const celula = (h.match(/<dt>Ano<\/dt><dd>([^<]*)<\/dd>/) || [])[1];
+    if (!celula) {
+      mal(`/viaturas/${v.slug}/`, 'a ficha não tem a linha «Ano» (DL 74/93 art. 2.º n.º 1 al. c) e d))');
+      continue;
+    }
+    const data = `${v.mes_matricula}/${v.ano_matricula}`;
+    if (!celula.includes(data)) {
+      mal(`/viaturas/${v.slug}/`, `a linha «Ano» não mostra a data da matrícula ${data} (DL 74/93 art. 2.º n.º 1 al. d))`);
+    }
+    /* O ano de construção procura-se DEPOIS de retirar a data da matrícula. Sem
+       isso, uma célula que mostrasse só «03/2014» passava o teste do ano de
+       construção 2014 por o número estar contido na data — e a alínea c) ficava
+       por cumprir sem ninguém notar. Foi assim que esta regra falhou no primeiro
+       teste que lhe fiz. */
+    const semData = celula.split(data).join(' ');
+    if (!new RegExp(`(^|\\D)${v.ano_construcao}(\\D|$)`).test(semData)) {
+      mal(`/viaturas/${v.slug}/`, `a linha «Ano» não mostra o ano de construção ${v.ano_construcao} em separado (DL 74/93 art. 2.º n.º 1 al. c))`);
+    }
+  }
+}
+
 /* 13. indexação: só com domínio próprio */
 {
   const temDominio = existsSync(join(SAIDA, 'CNAME'));

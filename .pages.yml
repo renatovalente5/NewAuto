@@ -91,22 +91,31 @@ content:
         required: true
         options: { min: 0, step: 1 }
         description: 'Obrigatório por lei. Preço total a pagar, IVA incluído. Nunca «sob consulta».'
+      # OS TRÊS CAMPOS SEGUINTES APARECEM NUMA SÓ LINHA DO SITE.
+      # Na ficha técnica lê-se «Ano: 2018 (matrícula 06/2018)». São três campos aqui
+      # e uma linha lá porque a lei exige os dois elementos em separado — o ano de
+      # construção (DL 74/93, art. 2.º n.º 1 al. c) e a data da matrícula (al. d) —
+      # e ao comprador interessa vê-los juntos. Nenhum dos três pode ficar vazio: o
+      # site recusa-se a publicar sem eles.
       - name: ano_construcao
         label: Ano de construção
         type: number
         required: true
         options: { min: 1950, max: 2030, step: 1 }
+        description: 'Obrigatório por lei, conforme o livrete. É o ano em que o carro foi fabricado, que pode ser anterior ao da matrícula. Aparece na ficha como «Ano».'
       - name: mes_matricula
         label: Mês da matrícula
         type: select
         required: true
         options:
           values: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+        description: 'Obrigatório por lei, conforme o livrete. Aparece entre parênteses ao lado do ano.'
       - name: ano_matricula
         label: Ano da matrícula
         type: number
         required: true
         options: { min: 1950, max: 2030, step: 1 }
+        description: 'Obrigatório por lei, conforme o livrete. É também o ano que aparece nos cartões das viaturas.'
       - name: registos_anteriores
         label: Registos anteriores de propriedade
         type: number
