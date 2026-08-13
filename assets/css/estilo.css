@@ -527,11 +527,10 @@ body.menu-aberto { overflow: hidden; }
   color: var(--claro);
 }
 
-.marcas__aviso {
-  max-width: 82ch; margin-top: 1.6rem; padding-top: 1.1rem;
-  border-top: 1px solid var(--carvao-3);
-  font-size: .875rem; line-height: 1.55; color: var(--claro-2);
-}
+/* Escrito como a nota do custo da chamada: entre parênteses, e sem `font-size`
+   nem `color` para ficar do tamanho e da cor do texto em volta. Saiu-lhe também a
+   linha separadora, porque um aparte entre parênteses não precisa de moldura. */
+.marcas__aviso { max-width: 82ch; margin-top: 1.2rem; line-height: 1.55; }
 
 /* -------------------------------------------------------------- lightbox */
 .lightbox { border: 0; padding: 0; background: transparent; max-width: 100vw; max-height: 100vh; width: 100%; height: 100%; }
