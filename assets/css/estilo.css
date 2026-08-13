@@ -319,12 +319,41 @@ body.menu-aberto { overflow: hidden; }
 .cartao__link:hover .cartao__foto img { transform: scale(1.05); }
 .cartao__corpo { padding: 1.1rem 1.2rem 1.3rem; }
 .cartao__nome { font-size: 1.06rem; }
+/* Ano · quilómetros · combustível · caixa, tudo numa linha.
+
+   Antes quebrava em quase todas as larguras, e o espaçamento era o culpado, não
+   o tamanho da letra: entre dois itens somavam-se o `column-gap` do contentor
+   (.9rem) e o `gap` de dentro do `li` (.9rem), o que dava ~32 px por separador —
+   95 px só de ar numa linha que só tem 228 px no telemóvel. Medido: a linha
+   pedia 317 px e o cartão oferece entre 228 e 251 px (a grelha de três colunas
+   dá cartões mais estreitos no desktop do que um telemóvel de 414 px).
+
+   Agora o espaço vive num só sítio — as margens do ponto — e a linha cabe em
+   244 px. Fica numa linha de 360 px para cima, incluindo 1024 e 1440.
+
+   O tamanho da letra segue a largura do cartão, não a do ecrã, porque a
+   restrição está no desktop: a grelha de três colunas dá cartões de 251 px,
+   mais estreitos do que os 322 px de um telemóvel de 414 px. Com um tamanho
+   fixo, o telemóvel ficava a pagar a factura do computador. A conta do `calc`
+   é directa: o espaçamento dos pontos é fixo em `rem` (~42 px no total), por
+   isso entra como constante, e o resto da largura reparte-se pelo texto.
+   Medido: 13,4 px no telemóvel — mais do que os 13,1 px de antes — e 11,8 px só
+   nos cartões estreitos.
+
+   O `flex-wrap` mantém-se como rede: um dia o cliente escreve «Híbrido Plug-in»
+   e nenhuma configuração legível cabe numa linha a 320 px. Nesse caso quebra em
+   vez de transbordar, e o ponto é `::after` do item anterior precisamente para
+   que a segunda linha não comece por um ponto solto. */
+.cartao__corpo { container-type: inline-size; }
 .cartao__dados {
-  display: flex; flex-wrap: wrap; gap: .3rem .9rem; margin-top: .6rem;
-  font-size: .82rem; color: var(--claro-3);
+  display: flex; flex-wrap: wrap; gap: .15rem 0; margin-top: .6rem;
+  font-size: clamp(.74rem, calc(5.6cqi - 2.5px), .84rem); color: var(--claro-3);
 }
-.cartao__dados li { display: flex; align-items: center; gap: .9rem; }
-.cartao__dados li + li::before { content: ''; width: 3px; height: 3px; border-radius: 50%; background: var(--carvao-4); }
+.cartao__dados li { display: flex; align-items: center; white-space: nowrap; }
+.cartao__dados li:not(:last-child)::after {
+  content: ''; flex: none; width: 3px; height: 3px; border-radius: 50%;
+  background: var(--carvao-4); margin: 0 .34rem;
+}
 .cartao__preco {
   padding-top: .9rem; margin-top: .9rem; border-top: 1px solid var(--carvao-3);
   font-size: 1.35rem; font-weight: 800; color: var(--vermelho-claro);
