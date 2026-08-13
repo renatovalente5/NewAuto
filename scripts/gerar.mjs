@@ -569,7 +569,7 @@ function secaoMarcas() {
     <div class="secao__topo">
       <div>
         <p class="sobretitulo">Marcas em stock</p>
-        <h2 class="h-secao">O que temos para venda</h2>
+        <h2 class="h-secao">Escolha pela marca</h2>
       </div>
     </div>
 
