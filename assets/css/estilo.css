@@ -337,16 +337,17 @@ body.menu-aberto { overflow: hidden; }
    e nenhuma configuração legível cabe numa linha a 320 px. Nesse caso quebra em
    vez de transbordar, e o ponto é `::after` do item anterior precisamente para
    que a segunda linha não comece por um ponto solto. */
-.cartao__corpo { container-type: inline-size; }
-.cartao__dados {
+.cartao__corpo, .painel { container-type: inline-size; }
+.cartao__dados, .painel__resumo {
   display: flex; flex-wrap: wrap; gap: .15rem 0; margin-top: .6rem;
   font-size: clamp(.74rem, calc(5.6cqi - 2.5px), .84rem); color: var(--claro-3);
 }
-.cartao__dados li { display: flex; align-items: center; white-space: nowrap; }
-.cartao__dados li:not(:last-child)::after {
+.cartao__dados li, .painel__resumo li { display: flex; align-items: center; white-space: nowrap; }
+.cartao__dados li:not(:last-child)::after, .painel__resumo li:not(:last-child)::after {
   content: ''; flex: none; width: 3px; height: 3px; border-radius: 50%;
   background: var(--carvao-4); margin: 0 .34rem;
 }
+.painel__resumo { margin-top: .9rem; }
 .cartao__preco {
   padding-top: .9rem; margin-top: .9rem; border-top: 1px solid var(--carvao-3);
   font-size: 1.35rem; font-weight: 800; color: var(--vermelho-claro);
@@ -424,12 +425,8 @@ body.menu-aberto { overflow: hidden; }
 .viatura__lado { position: sticky; top: calc(var(--h-topo) + 1rem); }
 .painel { background: var(--carvao-2); border: 1px solid var(--carvao-3); border-radius: var(--raio-g); padding: clamp(1.2rem, 2.5vw, 1.8rem); }
 .painel__titulo { font-size: clamp(1.3rem, 2.4vw, 1.7rem); margin-top: .2rem; }
-.painel__resumo {
-  display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin-top: .9rem;
-  font-size: .85rem; color: var(--claro-3);
-}
-.painel__resumo li { display: flex; align-items: center; gap: 1rem; }
-.painel__resumo li + li::before { content: ''; width: 3px; height: 3px; border-radius: 50%; background: var(--carvao-4); }
+/* O resumo do painel usa a mesma regra dos dados do cartão, lá em cima: é a
+   mesma linha de dados separados por ponto e tem o mesmo problema de largura. */
 .painel__preco {
   margin-top: 1.2rem; padding-top: 1.2rem; border-top: 1px solid var(--carvao-3);
   font-size: clamp(1.9rem, 4vw, 2.5rem); font-weight: 800; color: var(--vermelho-claro);

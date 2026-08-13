@@ -627,9 +627,12 @@ function paginaViatura(v) {
         <div class="painel">
           <p class="sobretitulo">Ref. ${esc(v.referencia)}</p>
           <h1 class="painel__titulo">${esc(v.titulo)}</h1>
+          <!-- Sem a potência: são os mesmos quatro dados do cartão, para a linha
+               caber de uma vez. Os cv continuam na tabela de especificações, que
+               é a ficha completa da viatura. -->
           <ul class="painel__resumo">
             <li>${v.ano_matricula}</li><li>${km(v.quilometros)}</li>
-            <li>${esc(v.combustivel)}</li><li>${esc(v.caixa)}</li><li>${v.potencia_cv} cv</li>
+            <li>${esc(v.combustivel)}</li><li>${esc(v.caixa)}</li>
           </ul>
           <p class="painel__preco">${vendida ? 'Vendida' : `${euros(v.preco)} &euro;`}</p>
           ${vendida ? '<p class="painel__nota">Esta viatura já foi vendida. Temos outras semelhantes — fale connosco.</p>'
@@ -977,6 +980,17 @@ ${urls.map(([p, orig]) => `  <url><loc>${abs(p)}</loc><lastmod>${ultimaAlteracao
   console.log(`  ${viaturas.length} viaturas (${disponiveis.length} disponíveis, ${vendidas.length} vendidas)`);
   console.log(`  ${urls.length} páginas no sitemap`);
   console.log(`  base: ${BASE || '/'}   site: ${SITE}`);
+
+  /* `_site/` é a pasta que o servidor de revisão serve. Um build de produção
+     escrito aqui responde 200 na página e 404 no CSS, no JS e em todas as
+     ligações: a página abre a branco e parece que o servidor caiu. Já aconteceu
+     e demorou a diagnosticar, por isso passa a dizer-se em voz alta. */
+  if (BASE && SAIDA === join(RAIZ, '_site')) {
+    console.log(`\n  ATENÇÃO: isto é um build de produção (${BASE}) escrito em _site/,`);
+    console.log('  que é a pasta da revisão local — o localhost vai dar 404 no CSS e no JS.');
+    console.log('  Para voltar ao local:  node scripts/local.mjs');
+    console.log('  Para conferir produção sem estragar o local:  SAIDA=/tmp/prod node scripts/gerar.mjs\n');
+  }
 }
 
 main();
