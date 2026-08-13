@@ -1,0 +1,63 @@
+name: Publicar
+
+# Publica a cada envio para a branch principal — incluindo os commits que o
+# Pages CMS faz quando o dono do stand grava uma viatura. É isso que faz o
+# backoffice funcionar sem ninguém ter de correr nada.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # O `lastmod` do sitemap sai da data do ficheiro de cada viatura. Com o
+          # checkout raso, todos os ficheiros ficam com a data do clone e o
+          # sitemap passa a carimbar hoje em todos os endereços — que é
+          # exactamente o que faz o Google deixar de confiar nele.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # O gerador não tem dependências: não há `npm ci` porque não há
+      # package.json. O CNAME, quando existir, decide sozinho se o site é
+      # construído para a raiz de um domínio ou para o endereço de projecto.
+      - name: Gerar o site
+        run: node scripts/gerar.mjs
+
+      # O travão. Verifica ligações, imagens, dados estruturados, o prefixo dos
+      # caminhos, o sitemap, os campos obrigatórios do DL 74/93 e a nota do
+      # custo das chamadas. Se falhar, não se publica — mais vale ficar no ar a
+      # versão anterior do que uma partida.
+      - name: Auditar antes de publicar
+        run: node scripts/auditar.mjs
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+  publicar:
+    needs: construir
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publicacao.outputs.page_url }}
+    steps:
+      - id: publicacao
+        uses: actions/deploy-pages@v4

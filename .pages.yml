@@ -1,0 +1,345 @@
+# ============================================================================
+# BACKOFFICE — Pages CMS (app.pagescms.org)
+#
+# É por aqui que o dono do stand gere o site sozinho, sem tocar em código e sem
+# precisar de conta de GitHub: entra por convite e grava; cada gravação é um
+# commit, e o site republica-se sozinho.
+#
+# DUAS COISAS QUE NÃO SE PODEM MEXER, e a razão de cada uma:
+#
+# 1. `settings.content.merge: true`. Sem isto, gravar uma viatura APAGA todos os
+#    campos que não estejam declarados aqui em baixo. É a armadilha número um
+#    deste produto e já custou dados noutro projecto.
+#
+# 2. `media.output`. Diz o caminho que fica gravado nos ficheiros de conteúdo.
+#    Tem de acompanhar o prefixo com que o site é construído: enquanto não
+#    houver domínio próprio o site vive em /NewAuto/, e é isso que está aqui.
+#    **Ao escrever o ficheiro CNAME, mudar `output` para `/assets/viaturas`.**
+#
+# Notas de operação para o cliente:
+#   - JPEG, não HEIC. O iPhone deve estar em «Definições → Câmara → Formatos →
+#     Mais compatível», senão as fotografias falham em silêncio.
+#   - Máximo ~3 MB por fotografia. Acima disso o carregamento falha sem dizer
+#     porquê (limite do serviço, não há definição que o levante).
+# ============================================================================
+
+media:
+  input: assets/viaturas
+  output: /NewAuto/assets/viaturas
+  extensions: [jpg, jpeg, png, webp, avif]
+  categories: [image]
+
+content:
+  - name: viaturas
+    label: Viaturas
+    type: collection
+    path: data/viaturas
+    filename: '{fields.slug}.json'
+    format: json
+    view:
+      fields: [titulo, referencia, preco, quilometros, estado, destaque]
+      primary: titulo
+      sort: [ordem, preco, quilometros]
+    fields:
+      # ---------------------------------------------------------- identificação
+      - name: titulo
+        label: Título do anúncio
+        type: string
+        required: true
+        description: 'Marca, modelo e versão. Sem o ano — esse sai do campo próprio. Ex.: «Peugeot 308 SW 1.5 BlueHDi Allure»'
+      - name: slug
+        label: Endereço da página
+        type: string
+        required: true
+        pattern: '^[a-z0-9-]+$'
+        description: 'Só minúsculas, números e hífenes. Ex.: peugeot-308-sw-2018. ATENÇÃO: mudar isto muda o endereço da página e quebra as ligações que já foram partilhadas.'
+      - name: referencia
+        label: Referência interna
+        type: string
+        required: true
+        description: 'A vossa referência. Aparece na ficha e nas mensagens de WhatsApp.'
+      - name: marca
+        label: Marca
+        type: select
+        required: true
+        options:
+          values: [Alfa Romeo, Audi, BMW, Citroën, Cupra, Dacia, Fiat, Ford, Honda, Hyundai,
+                   Jaguar, Jeep, Kia, Land Rover, Lexus, Mazda, Mercedes-Benz, MINI, Mitsubishi,
+                   Nissan, Opel, Peugeot, Porsche, Renault, Seat, Škoda, Smart, Suzuki, Tesla,
+                   Toyota, Volkswagen, Volvo, Outra]
+      - name: modelo
+        label: Modelo
+        type: string
+        required: true
+      - name: versao
+        label: Versão
+        type: string
+
+      # ------------------------------------------- obrigatórios pelo DL 74/93
+      # Os sete campos seguintes são impostos pelo artigo 2.º n.º 1 do
+      # Decreto-Lei n.º 74/93 para qualquer anúncio de venda de veículo usado.
+      # O site RECUSA-SE a publicar uma viatura sem eles — a compilação falha.
+      - name: matricula
+        label: Matrícula
+        type: string
+        required: true
+        pattern: '^[A-Z0-9]{2}-[A-Z0-9]{2}-[A-Z0-9]{2}$'
+        description: 'Obrigatória por lei (DL 74/93). Formato AA-00-AA.'
+      - name: preco
+        label: Preço total (€, com IVA)
+        type: number
+        required: true
+        options: { min: 0, step: 1 }
+        description: 'Obrigatório por lei. Preço total a pagar, IVA incluído. Nunca «sob consulta».'
+      - name: ano_construcao
+        label: Ano de construção
+        type: number
+        required: true
+        options: { min: 1950, max: 2030, step: 1 }
+      - name: mes_matricula
+        label: Mês da matrícula
+        type: select
+        required: true
+        options:
+          values: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+      - name: ano_matricula
+        label: Ano da matrícula
+        type: number
+        required: true
+        options: { min: 1950, max: 2030, step: 1 }
+      - name: registos_anteriores
+        label: Registos anteriores de propriedade
+        type: number
+        required: true
+        options: { min: 0, step: 1 }
+        description: 'Quantos donos teve antes. Obrigatório por lei.'
+      - name: garantia_usado
+        label: Garantia de usado
+        type: select
+        required: true
+        options:
+          values:
+            - 'Garantia legal de conformidade de 3 anos (DL 84/2021)'
+            - 'Garantia legal de conformidade, reduzida a 18 meses por acordo escrito'
+        description: 'NÃO EXISTE garantia de 12 meses — foi revogada em 2022. A redução a 18 meses só vale com acordo escrito, assinado antes da compra.'
+      - name: garantia_fabrica
+        label: Garantia de fábrica
+        type: select
+        required: true
+        options:
+          values: ['Não aplicável', 'Sim, ainda em vigor']
+
+      # ---------------------------------------------------------------- estado
+      - name: estado
+        label: Estado
+        type: select
+        required: true
+        default: disponivel
+        options:
+          values:
+            - { name: disponivel, label: Disponível }
+            - { name: reservada, label: Reservada }
+            - { name: vendida, label: Vendida }
+        description: 'Nunca apague uma viatura vendida — marque-a como Vendida. A página continua a existir e serve de prova de actividade.'
+      - name: data_venda
+        label: Data da venda
+        type: date
+        description: 'Preencher apenas quando o estado passa a Vendida.'
+      - name: destaque
+        label: Mostrar na página inicial
+        type: boolean
+        default: false
+      - name: oculta
+        label: Esconder do site
+        type: boolean
+        default: false
+        description: 'Tira a viatura do site sem a apagar.'
+      - name: ordem
+        label: Ordem
+        type: number
+        options: { min: 1, step: 1 }
+        description: 'Número mais baixo aparece primeiro.'
+
+      # --------------------------------------------------------------- técnicos
+      - name: quilometros
+        label: Quilómetros
+        type: number
+        required: true
+        options: { min: 0, step: 1 }
+      - name: combustivel
+        label: Combustível
+        type: select
+        required: true
+        options:
+          values: [Gasolina, Gasóleo, Híbrido, Híbrido Plug-in, Elétrico, GPL]
+      - name: caixa
+        label: Caixa
+        type: select
+        required: true
+        options:
+          values: [Manual, Automática]
+      - name: potencia_cv
+        label: Potência (cv)
+        type: number
+        required: true
+        options: { min: 1, step: 1 }
+      - name: cilindrada_cc
+        label: Cilindrada (cm³)
+        type: number
+        options: { min: 0, step: 1 }
+        description: 'Deixar vazio nos eléctricos.'
+      - name: segmento
+        label: Segmento
+        type: select
+        required: true
+        options:
+          values: [Citadino, Utilitário, Berlina, Carrinha, SUV/TT, Monovolume, Coupé, Cabrio, Comercial]
+      - name: portas
+        label: Nº de portas
+        type: number
+        options: { min: 2, max: 5, step: 1 }
+      - name: lugares
+        label: Nº de lugares
+        type: number
+        options: { min: 1, max: 9, step: 1 }
+      - name: cor
+        label: Cor
+        type: string
+        required: true
+      - name: origem
+        label: Origem
+        type: select
+        options:
+          values: [Nacional, Importado]
+      - name: livro_revisoes
+        label: Livro de revisões completo
+        type: boolean
+        default: false
+      - name: negociavel
+        label: Preço negociável
+        type: boolean
+        default: false
+      - name: aceita_retoma
+        label: Aceita retoma
+        type: boolean
+        default: false
+
+      # ----------------------------------------------------------- fotografias
+      - name: galeria
+        label: Fotografias
+        type: image
+        options:
+          media: viaturas
+          multiple: true
+          extensions: [jpg, jpeg, png, webp]
+        description: 'A primeira é a que aparece nos cartões e nas partilhas. Mínimo 6, ideal 10 a 15. JPEG, não HEIC. Máximo 3 MB cada.'
+
+      # -------------------------------------------------------------- descrição
+      - name: descricao
+        label: Descrição
+        type: text
+        description: 'Não repita aqui quilómetros, ano nem potência — esses aparecem automaticamente. Escreva o que a ficha técnica não diz: estado, equipamento, história.'
+
+      # Escrito pelo gerador; fica visível para se saber o que ainda é de exemplo.
+      - name: demonstracao
+        label: Dados de demonstração
+        type: boolean
+        default: false
+        description: 'Marque como falso depois de conferir todos os campos desta viatura.'
+      - name: fotos_origem
+        label: Fotografias de origem (não mexer)
+        type: string
+        list: true
+        description: 'Usado só pelas viaturas de exemplo. Deixe vazio nas viaturas que criar — use o campo Fotografias.'
+
+  - name: definicoes
+    label: Dados do stand
+    type: file
+    path: data/definicoes.json
+    format: json
+    fields:
+      - name: empresa
+        label: Empresa
+        type: object
+        fields:
+          - { name: nome, label: Nome comercial, type: string, required: true }
+          - { name: nome_completo, label: Firma / denominação social completa, type: string, required: true,
+              description: 'A designação legal completa, como está na certidão permanente. Obrigatória no rodapé (DL 7/2004, art. 10.º).' }
+          - { name: nif, label: NIF / NIPC, type: string, required: true }
+          - { name: forma_juridica, label: Forma jurídica, type: string,
+              description: 'Ex.: «Sociedade Unipessoal por Quotas». Deixar vazio se for empresário em nome individual.' }
+          - { name: capital_social, label: Capital social, type: string,
+              description: 'OBRIGATÓRIO se for sociedade por quotas ou anónima (Código das Sociedades Comerciais, art. 171.º). Deixar vazio se for em nome individual — nesse caso não existe.' }
+          - { name: conservatoria, label: Conservatória do Registo Comercial, type: string }
+          - { name: matricula, label: Nº de matrícula comercial, type: string }
+          - { name: actividade, label: Actividade, type: string }
+          - { name: desde, label: No mercado desde, type: number, options: { min: 1900, max: 2100, step: 1 } }
+      - name: contactos
+        label: Contactos
+        type: object
+        fields:
+          - { name: telefone, label: Telefone (só dígitos), type: string, required: true }
+          - { name: telefone_texto, label: Telefone como aparece, type: string, required: true }
+          - { name: whatsapp, label: WhatsApp com indicativo, type: string, required: true,
+              description: 'Formato 351XXXXXXXXX, sem + e sem espaços.' }
+          - { name: whatsapp_texto, label: WhatsApp como aparece, type: string }
+          - { name: whatsapp_2, label: 2.º WhatsApp com indicativo, type: string }
+          - { name: whatsapp_2_texto, label: 2.º WhatsApp como aparece, type: string }
+          - { name: email, label: Email, type: string,
+              description: 'Obrigatório por lei em texto legível (DL 7/2004, art. 10.º).' }
+      - name: horario
+        label: Horário
+        type: object
+        fields:
+          - { name: texto, label: Horário em uma linha, type: string }
+          - name: linhas
+            label: Linhas do horário
+            type: object
+            list: true
+            fields:
+              - { name: dias, label: Dias, type: string }
+              - { name: horas, label: Horas, type: string }
+          - name: estruturado
+            label: Horário para o Google (não mexer sem cuidado)
+            type: object
+            list: true
+            fields:
+              - { name: dias, label: Dias em inglês, type: string, list: true }
+              - { name: abre, label: Abre, type: string }
+              - { name: fecha, label: Fecha, type: string }
+      - name: local
+        label: Localização
+        type: object
+        fields:
+          - { name: morada, label: Morada, type: string, required: true }
+          - { name: codigo_postal, label: Código postal, type: string, required: true }
+          - { name: localidade, label: Localidade, type: string, required: true }
+          - { name: concelho, label: Concelho, type: string }
+          - { name: distrito, label: Distrito, type: string }
+          - { name: pais, label: País, type: string }
+          - { name: latitude, label: Latitude, type: number, options: { step: 0.00001 } }
+          - { name: longitude, label: Longitude, type: number, options: { step: 0.00001 } }
+          - { name: mapa, label: Link do Google Maps, type: string }
+      - name: redes
+        label: Redes sociais
+        type: object
+        fields:
+          - { name: instagram, label: Instagram, type: string }
+          - { name: facebook, label: Facebook, type: string }
+      - name: textos
+        label: Textos do site
+        type: object
+        fields:
+          - { name: reclamo, label: Linha acima do título, type: string }
+          - { name: hero_titulo, label: Título da página inicial, type: string }
+          - { name: hero_texto, label: Texto da página inicial, type: string }
+          - { name: assinatura, label: Assinatura, type: string }
+          - { name: sobre_titulo, label: Título do «Sobre nós», type: string }
+          - { name: sobre_texto, label: Texto do «Sobre nós», type: string }
+
+settings:
+  content:
+    # OBRIGATÓRIO. Sem isto, gravar apaga tudo o que não esteja declarado acima.
+    merge: true
+  commit:
+    identity: user
