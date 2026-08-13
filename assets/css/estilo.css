@@ -164,7 +164,18 @@ button { background: none; border: 0; }
 
 .tel { display: inline-flex; align-items: center; gap: .5rem; font-weight: 700; }
 .tel svg { width: 17px; height: 17px; color: var(--vermelho); }
-.nota-chamada { display: block; font-size: .72rem; color: var(--claro-3); margin-top: .4rem; }
+/* A NOTA DO CUSTO DA CHAMADA NÃO LEVA `font-size` NEM `color`, DE PROPÓSITO.
+
+   O artigo 3.º do DL 59/2021, na redacção da Lei 14/2023, exige-a com
+   «visibilidade equivalente» à do próprio número. Estava a .72rem em
+   --claro-3 ao lado de números a 1rem em --claro: mais pequena e mais apagada,
+   ou seja o contrário do que a lei pede. Herdando, fica exactamente do tamanho e
+   da cor do número que acompanha, em qualquer contexto onde seja usada — e
+   continua a ser assim se alguém mudar o tamanho do texto em volta.
+
+   Não voltar a declarar tamanho nem cor aqui. Há uma regra na auditoria que
+   recusa a publicação se isso acontecer. */
+.nota-chamada { display: block; margin-top: .4rem; }
 .nota-chamada--centro { text-align: center; margin-top: 1rem; }
 
 /* --------------------------------------------------------------- cabeçalho */
@@ -576,7 +587,7 @@ body.menu-aberto { overflow: hidden; }
 .contacto__lista { display: grid; gap: 1rem; margin: 1.8rem 0; }
 .contacto__lista li { display: flex; gap: .8rem; align-items: flex-start; }
 .contacto__lista svg { width: 19px; height: 19px; color: var(--vermelho); flex: none; margin-top: .2rem; }
-.contacto__lista small { display: block; font-size: .8rem; color: var(--claro-3); margin-top: .1rem; }
+.contacto__lista small { display: block; font-size: inherit; color: inherit; margin-top: .1rem; }
 .contacto__lista a:hover { color: var(--vermelho-texto); }
 .contacto__redes { display: flex; align-items: center; gap: .6rem; margin-top: 1.8rem; padding-top: 1.4rem; border-top: 1px solid var(--carvao-3); }
 .contacto__redes span { font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--claro-3); margin-right: .3rem; }
@@ -624,7 +635,7 @@ body.menu-aberto { overflow: hidden; }
 .rodape__lista a:hover { color: var(--vermelho-texto); }
 .rodape__contactos li { display: flex; gap: .7rem; align-items: flex-start; }
 .rodape__contactos svg { width: 17px; height: 17px; color: var(--vermelho); flex: none; margin-top: .2rem; }
-.rodape__contactos small { display: block; font-size: .74rem; color: var(--claro-3); }
+.rodape__contactos small { display: block; font-size: inherit; color: inherit; }
 .rodape__redes { display: flex; gap: .6rem; margin-top: 1.5rem; }
 .rodape__rede { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--carvao-4); border-radius: 50%; transition: background var(--t), border-color var(--t); }
 .rodape__rede:hover { background: var(--vermelho); border-color: var(--vermelho); }
