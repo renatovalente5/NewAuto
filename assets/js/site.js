@@ -313,108 +313,98 @@
   }
 
   /* ------------------------------------------------------------------------
-     7. Carrocel das marcas.
+     7. Carrocel das marcas, a girar sozinho.
 
-     Scroll nativo, não `transform`: já foi medido noutro projecto que ligações
+     Scroll nativo e não `transform`: já foi medido noutro projecto que ligações
      dentro de uma faixa animada por `transform` não são clicáveis, porque o alvo
-     desliza debaixo do cursor entre o `mousedown` e o `mouseup`.
+     desliza entre o `mousedown` e o `mouseup`.
 
-     As setas e o movimento só aparecem se houver mais marcas do que cabem. Com
-     sete marcas num ecrã largo cabe tudo numa linha, e nesse caso um carrocel não
-     acrescenta informação — esconde-a. Quando o stand tiver vinte marcas, isto
-     passa a andar sozinho sem ninguém mexer no código.
+     A VOLTA CONTÍNUA. O HTML traz as marcas uma só vez — sem JavaScript fica uma
+     fila limpa que se arrasta com o dedo. É aqui que se clonam, e clona-se o
+     que for preciso: para a volta não deixar buraco, o conteúdo total tem de
+     chegar à largura de um grupo MAIS a largura visível, senão ao dar a volta
+     aparece vazio à direita. Com sete marcas num ecrã de 1440 isso são três
+     cópias, num telemóvel são duas.
 
-     O movimento é feito aqui e não em CSS de propósito: a regra global de
-     `prefers-reduced-motion` corta a duração das animações para .01ms sem lhes
-     tocar nas iterações, o que numa animação infinita não a pára — acelera-a até
-     piscar. Em JavaScript, «menos movimento» pode significar movimento nenhum.
+     Os clones levam `aria-hidden` e `tabindex="-1"`: existem para os olhos, não
+     para quem ouve a página, senão um leitor de ecrã anunciava as marcas duas e
+     três vezes. E como levam texto, continuam a passar a regra do auditor que
+     exige nome acessível em toda a ligação.
+
+     O movimento é feito aqui e não em CSS por uma razão medida: a regra global
+     de `prefers-reduced-motion` corta a duração das animações para .01ms sem
+     lhes tocar nas iterações, o que numa animação infinita não a pára — acelera-a
+     até piscar. Em JavaScript, «menos movimento» pode ser movimento nenhum.
+
+     Não há botão de parar, a pedido. Pára ao passar o rato e ao receber foco —
+     que é também o que faz um clique acertar num alvo em andamento — e não
+     arranca de todo em quem pediu menos movimento.
   ------------------------------------------------------------------------ */
   const fila = $('#marcas');
-  if (fila) {
-    const setas = $('#marcas-setas');
-    const antes = $('#marcas-antes');
-    const depois = $('#marcas-depois');
-    const btnPausa = $('#marcas-pausa');
+  if (fila && fila.children.length) {
     const menosMovimento = matchMedia('(prefers-reduced-motion: reduce)');
+    const originais = [...fila.children];
+    let larguraGrupo = 0;
 
-    let agendadoMarcas = false;
-    const transborda = () => fila.scrollWidth - fila.clientWidth > 2;
+    /* Clonar até haver conteúdo para dar a volta sem costura. O limite de 12
+       existe só para o caso de uma medição estranha devolver zero e isto tentar
+       encher a página de clones. */
+    function preparar() {
+      for (const el of [...fila.children]) if (el.dataset.clone) el.remove();
+      larguraGrupo = originais.reduce((a, el) => a + el.getBoundingClientRect().width, 0)
+        + parseFloat(getComputedStyle(fila).columnGap || 0) * originais.length;
+      if (!larguraGrupo) return;
 
-    function estado() {
-      const tem = transborda();
-      if (setas) setas.hidden = !tem;
-      if (antes) antes.disabled = fila.scrollLeft <= 2;
-      if (depois) depois.disabled = fila.scrollLeft >= fila.scrollWidth - fila.clientWidth - 2;
-      return tem;
+      const preciso = larguraGrupo + fila.clientWidth;
+      let copias = 0;
+      while (larguraGrupo * (copias + 1) < preciso && copias < 12) {
+        for (const el of originais) {
+          const c = el.cloneNode(true);
+          c.dataset.clone = '1';
+          c.setAttribute('aria-hidden', 'true');
+          c.querySelectorAll('a').forEach((a) => a.setAttribute('tabindex', '-1'));
+          fila.appendChild(c);
+        }
+        copias++;
+      }
     }
 
-    const salto = () => Math.max(160, Math.round(fila.clientWidth * 0.8));
-    antes?.addEventListener('click', () => fila.scrollBy({ left: -salto(), behavior: 'smooth' }));
-    depois?.addEventListener('click', () => fila.scrollBy({ left: salto(), behavior: 'smooth' }));
-
-    fila.addEventListener('scroll', () => {
-      if (agendadoMarcas) return;
-      agendadoMarcas = true;
-      requestAnimationFrame(() => { agendadoMarcas = false; estado(); });
-    });
-    addEventListener('resize', estado);
-    estado();
-
-    /* ---- movimento automático ---- */
-    let paradoPeloUtilizador = false;   // botão de pausa: decisão explícita, fica
-    let sobre = false;                  // rato em cima ou foco dentro: suspende
-    let visivel = true;                 // secção fora do ecrã: não gasta bateria
-    let sentido = 1;
+    let sobre = false;
+    let visivel = true;
     let ultimo = 0;
-    const VELOCIDADE = 26;              // px por segundo
-
-    const podeAndar = () => transborda() && !menosMovimento.matches
-      && !paradoPeloUtilizador && !sobre && visivel;
+    const VELOCIDADE = 30;   // px por segundo
 
     function passo(agora) {
       if (!ultimo) ultimo = agora;
       const dt = Math.min((agora - ultimo) / 1000, 0.05);
       ultimo = agora;
 
-      if (podeAndar()) {
-        const limite = fila.scrollWidth - fila.clientWidth;
-        /* Chega ao fim e volta para trás. Uma volta contínua exigiria duplicar
-           os logótipos, e a segunda cópia é exactamente o que o auditor recusa. */
-        if (fila.scrollLeft >= limite - 1) sentido = -1;
-        else if (fila.scrollLeft <= 1) sentido = 1;
-        fila.scrollBy({ left: sentido * VELOCIDADE * dt, behavior: 'instant' });
+      if (!sobre && visivel && !menosMovimento.matches && larguraGrupo > 0) {
+        let x = fila.scrollLeft + VELOCIDADE * dt;
+        /* A costura: à largura de um grupo o que se vê é igual ao início, por
+           isso voltar atrás essa distância não se nota. */
+        if (x >= larguraGrupo) x -= larguraGrupo;
+        fila.scrollLeft = x;
       }
       requestAnimationFrame(passo);
     }
-
-    function mostrarPausa() {
-      if (!btnPausa) return;
-      btnPausa.hidden = !(transborda() && !menosMovimento.matches);
-    }
-
-    /* O ícone troca por CSS, a partir do `aria-pressed` — assim o estado que o
-       leitor de ecrã anuncia e o que se vê no ecrã são a mesma coisa, e não há
-       SVG escrito dentro do JavaScript. */
-    btnPausa?.addEventListener('click', () => {
-      paradoPeloUtilizador = !paradoPeloUtilizador;
-      btnPausa.setAttribute('aria-pressed', String(paradoPeloUtilizador));
-      btnPausa.setAttribute('aria-label', paradoPeloUtilizador
-        ? 'Retomar o movimento das marcas' : 'Parar o movimento das marcas');
-    });
 
     fila.addEventListener('pointerenter', () => { sobre = true; });
     fila.addEventListener('pointerleave', () => { sobre = false; });
     fila.addEventListener('focusin', () => { sobre = true; });
     fila.addEventListener('focusout', () => { sobre = false; });
+    /* Enquanto o dedo arrasta, não empurrar por cima do gesto. */
+    fila.addEventListener('pointerdown', () => { sobre = true; });
+    addEventListener('pointerup', () => { sobre = false; });
 
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver(([e]) => { visivel = e.isIntersecting; })
-        .observe(fila);
+      new IntersectionObserver(([e]) => { visivel = e.isIntersecting; }).observe(fila);
     }
 
-    menosMovimento.addEventListener('change', mostrarPausa);
-    addEventListener('resize', mostrarPausa);
-    mostrarPausa();
+    let reagendado;
+    addEventListener('resize', () => { clearTimeout(reagendado); reagendado = setTimeout(preparar, 150); });
+    menosMovimento.addEventListener('change', preparar);
+    preparar();
     requestAnimationFrame(passo);
   }
 })();
