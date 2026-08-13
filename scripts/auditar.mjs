@@ -271,8 +271,8 @@ for (const p of noMapa) if (!noDisco.includes(p)) mal('sitemap.xml', `${p} não 
        entre duas palavras falha por causa da indentação. Já aconteceu neste
        auditor com o preço formatado. */
     const texto = secao.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
-    if (!/stand independente de autom[óo]veis usados/i.test(texto)
-      || !/n[ãa]o somos concession[áa]rio/i.test(texto)) {
+    if (!/stand independente/i.test(texto)
+      || !/n[ãa]o somos concession[áa]rio autorizado/i.test(texto)) {
       mal('/index.html', 'a secção das marcas não traz o esclarecimento de que a NewAuto não é concessionário autorizado (uso referencial: CPI art. 254.º al. c), TJUE C-228/03)');
     }
 

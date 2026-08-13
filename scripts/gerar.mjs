@@ -563,10 +563,14 @@ function secaoMarcas() {
     <ul class="marcas" id="marcas" tabindex="0" role="list"
         aria-label="Marcas com viaturas em stock" data-grupo="${marcas.length}">${itens}</ul>
 
-    <p class="marcas__aviso">A NewAuto é um stand independente de automóveis usados: não somos
-      concessionário, representante nem oficina autorizada de nenhuma destas marcas e não temos
-      relação comercial com os fabricantes. Os nomes e símbolos pertencem aos respectivos titulares
-      e estão aqui para dizer que viaturas temos para venda.</p>
+    <!-- Uma linha, e não um parágrafo. Nenhuma lei manda imprimir este texto: o que
+         está proibido é dar a impressão de ser concessionário autorizado sem o ser
+         (DL 57/2008 art. 8.º al. d), e a condição de «práticas honestas» do art. 254.º
+         do CPI). É essa impressão que a frase desfaz, e desfaz-se numa linha. Tem de
+         ficar aqui, junto dos símbolos: Gillette (C-228/03 § 46) manda olhar à
+         apresentação global, e um aviso noutra página não corrige o que se lê nesta. -->
+    <p class="marcas__aviso">Stand independente: não somos concessionário autorizado de nenhuma
+      destas marcas.</p>
   </div>
 </section>`;
 }
