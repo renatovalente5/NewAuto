@@ -10,9 +10,23 @@ sem pedidos a terceiros — a página que o visitante recebe é a que está no d
 ## Correr localmente
 
 ```bash
-node scripts/gerar.mjs                 # escreve _site/
-node scripts/auditar.mjs               # verifica o que foi escrito
-python3 -m http.server 4400 --directory _site
+node scripts/local.mjs
+```
+
+Constrói, audita e serve em <http://localhost:4400>. É o único comando de que se
+precisa para ver o site.
+
+**Não construir com `node scripts/gerar.mjs` para ver em localhost.** Sem `BASE=`
+o gerador constrói para produção, onde tudo mora em `/NewAuto/...`: servido em
+localhost, o endereço responde 200 mas o CSS, o JS e todas as ligações dão 404, e
+a página abre a branco — parece que o servidor morreu, quando o que está errado é
+o build. Foi por isto que este script existe.
+
+Para conferir o build de produção sem estragar o local, há a variável `SAIDA`:
+
+```bash
+SAIDA=/tmp/prod node scripts/gerar.mjs     # produção numa pasta à parte
+SAIDA=/tmp/prod node scripts/auditar.mjs   # auditada com o prefixo de produção
 ```
 
 ## Como está organizado
@@ -26,6 +40,7 @@ _fonte/originais/        as 205 fotografias como vieram, e o logótipo
 _fonte/classificacao.json  o que cada fotografia mostra, classificada uma a uma
 scripts/gerar.mjs        o gerador
 scripts/auditar.mjs      o travão que corre antes de publicar
+scripts/local.mjs        constrói + audita + serve, para revisão local
 scripts/imagens.py       fotografias → os três formatos
 scripts/logotipo.py      logótipo extraído do JPEG do cliente
 scripts/padrao.py        textura de setas extraída do banner

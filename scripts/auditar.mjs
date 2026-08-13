@@ -12,7 +12,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SAIDA = join(RAIZ, '_site');
+const SAIDA = process.env.SAIDA ? resolve(process.env.SAIDA) : join(RAIZ, '_site');
 const problemas = [];
 const avisos = [];
 const mal = (f, m) => problemas.push(`${f}: ${m}`);

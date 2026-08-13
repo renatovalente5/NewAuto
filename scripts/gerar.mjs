@@ -12,12 +12,16 @@
    Correr:  BASE= SITE=http://localhost:4400 node scripts/gerar.mjs
    ========================================================================== */
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, cpSync, statSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SAIDA = join(RAIZ, '_site');
+/* A pasta de saída é configurável para o build de produção poder ser verificado
+   sem destruir o build local: sem isto, correr o gerador sem `BASE=` antes de
+   publicar deixava `_site/` cheio de caminhos `/NewAuto/...` que dão 404 em
+   localhost — a página abria sem CSS nem JS e parecia vazia. */
+const SAIDA = process.env.SAIDA ? resolve(process.env.SAIDA) : join(RAIZ, '_site');
 
 /* ONDE O SITE VAI VIVER — e porque é que isto não está escrito à mão.
 
@@ -969,7 +973,7 @@ ${urls.map(([p, orig]) => `  <url><loc>${abs(p)}</loc><lastmod>${ultimaAlteracao
     ? `User-agent: *\nAllow: /\n\nSitemap: ${abs('sitemap.xml')}\n`
     : '# Endereço provisório, sem domínio próprio ainda. Não indexar.\nUser-agent: *\nDisallow: /\n');
 
-  console.log('gerado em _site/');
+  console.log(`gerado em ${relative(process.cwd(), SAIDA) || '.'}/`);
   console.log(`  ${viaturas.length} viaturas (${disponiveis.length} disponíveis, ${vendidas.length} vendidas)`);
   console.log(`  ${urls.length} páginas no sitemap`);
   console.log(`  base: ${BASE || '/'}   site: ${SITE}`);
