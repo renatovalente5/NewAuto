@@ -310,10 +310,8 @@ ${avisoCookies()}
 function avisoCookies() {
   return `<div class="cookies" id="cookies" hidden>
   <div class="cookies__corpo">
-    <p><b>Este sítio não instala cookies.</b> Não temos análise de tráfego nem publicidade. A única
-      coisa que precisa da sua autorização é o mapa do Google na página de contactos, que vem dos
-      servidores do Google e pode instalar cookies. Se aceitar, o mapa passa a ser carregado; se
-      recusar, fica por carregar. <a href="${u('cookies/')}">Saber mais</a></p>
+    <p><b>Não usamos cookies.</b> Só o mapa do Google, na página de contactos, precisa da sua
+      autorização. <a href="${u('cookies/')}">Saber mais</a></p>
     <div class="cookies__botoes">
       <button class="btn btn--linha" type="button" data-cookies="recusar">Recusar</button>
       <button class="btn btn--cheio" type="button" data-cookies="aceitar">Aceitar</button>
@@ -431,11 +429,6 @@ function paginaInicial() {
       <a class="btn btn--linha btn--g" href="tel:+351${def.contactos.telefone}">${ic.tel} ${esc(def.contactos.telefone_texto)}</a>
     </div>
     <p class="nota-chamada">${NOTA_CHAMADA}</p>
-    <ul class="capa__provas">
-      <li>No mercado desde ${def.empresa.desde}</li>
-      <li>Quilometragem certificada</li>
-      <li>Garantia legal de 3 anos</li>
-    </ul>
   </div>
 </section>
 

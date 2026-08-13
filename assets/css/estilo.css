@@ -273,13 +273,6 @@ body.menu-aberto { overflow: hidden; }
 .capa__titulo { max-width: 16ch; }
 .capa__lead { font-size: clamp(1.02rem, 1.6vw, 1.2rem); color: var(--claro-2); max-width: 52ch; margin-top: 1.3rem; }
 .capa__accoes { display: flex; gap: .8rem; flex-wrap: wrap; margin-top: 2.2rem; }
-.capa__provas {
-  display: flex; flex-wrap: wrap; gap: .6rem 1.6rem; margin-top: 2.6rem;
-  padding-top: 1.5rem; border-top: 1px solid var(--carvao-3);
-  font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--claro-3);
-}
-.capa__provas li { display: flex; align-items: center; gap: 1.6rem; }
-.capa__provas li + li::before { content: ''; width: 5px; height: 5px; background: var(--vermelho); }
 
 /* ---------------------------------------------------------------- secções */
 .secao { padding-block: clamp(2.8rem, 7vw, 5rem); position: relative; }

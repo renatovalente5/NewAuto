@@ -18,13 +18,38 @@
   "horario": {
     "texto": "Segunda a Sexta 09:00–19:00 · Sábado 10:00–13:00 · Domingo por marcação",
     "linhas": [
-      { "dias": "Segunda a Sexta", "horas": "09:00 – 19:00" },
-      { "dias": "Sábado", "horas": "10:00 – 13:00" },
-      { "dias": "Domingo", "horas": "Por marcação" }
+      {
+        "dias": "Segunda a Sexta",
+        "horas": "09:00 – 19:00"
+      },
+      {
+        "dias": "Sábado",
+        "horas": "10:00 – 13:00"
+      },
+      {
+        "dias": "Domingo",
+        "horas": "Por marcação"
+      }
     ],
     "estruturado": [
-      { "dias": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "abre": "09:00", "fecha": "19:00" },
-      { "dias": ["Saturday"], "abre": "10:00", "fecha": "13:00" }
+      {
+        "dias": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday"
+        ],
+        "abre": "09:00",
+        "fecha": "19:00"
+      },
+      {
+        "dias": [
+          "Saturday"
+        ],
+        "abre": "10:00",
+        "fecha": "13:00"
+      }
     ]
   },
   "local": {
@@ -43,9 +68,9 @@
     "facebook": "https://www.facebook.com/p/Newauto-61555738204108"
   },
   "textos": {
-    "reclamo": "Comércio automóvel em Paços de Brandão",
+    "reclamo": "NewAuto · Paços de Brandão",
     "hero_titulo": "O teu próximo carro está aqui.",
-    "hero_texto": "Confiança, simpatia e bons negócios. No mercado desde 2018, com quilometragem certificada em todas as viaturas.",
+    "hero_texto": "No mercado desde 2018, com quilometragem certificada em todas as viaturas.",
     "assinatura": "Aqui, roda tudo bem.",
     "sobre_titulo": "Vendemos mais do que carros",
     "sobre_texto": "A NewAuto nasceu em 2018 e já ajudou centenas de clientes a encontrar o carro certo ao preço justo. Com simpatia, transparência e quilometragem certificada, fazemos da compra do seu carro uma experiência simples e segura."
