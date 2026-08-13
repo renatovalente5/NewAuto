@@ -242,35 +242,10 @@ const noDisco = paginas.map((p) => rel(p).replace(/index\.html$/, '')).filter((p
 for (const p of noDisco) if (!noMapa.includes(p)) mal('sitemap.xml', `falta ${p}`);
 for (const p of noMapa) if (!noDisco.includes(p)) mal('sitemap.xml', `${p} não existe`);
 
-/* 8b. a nota do custo da chamada não pode ser encolhida nem apagada
-
-   O art. 3.º do DL 59/2021, na redacção da Lei 14/2023, exige-a com
-   «visibilidade equivalente» à do próprio número. Estava a .72rem em --claro-3 ao
-   lado de números a 1rem em --claro, ou seja o contrário do que a lei pede.
-   Passou a herdar, e esta regra existe porque «herdar» é frágil: basta alguém
-   escrever um `font-size` no sítio errado para a conformidade se desfazer sem
-   nada quebrar visivelmente. Verifica-se no CSS, que é onde o dano se faria. */
-{
-  const css = readFileSync(join(SAIDA, 'assets/css/estilo.css'), 'utf8');
-  const regras = [
-    ['.nota-chamada', /\.nota-chamada\s*\{([^}]*)\}/],
-    ['.rodape__contactos small', /\.rodape__contactos small\s*\{([^}]*)\}/],
-    ['.contacto__lista small', /\.contacto__lista small\s*\{([^}]*)\}/],
-  ];
-  for (const [nome, re] of regras) {
-    const m = css.match(re);
-    if (!m) { mal('assets/css/estilo.css', `a regra ${nome} desapareceu — a nota do custo da chamada deixou de ter estilo próprio`); continue; }
-    const corpo = m[1];
-    const tamanho = corpo.match(/font-size:\s*([^;]+)/);
-    const cor = corpo.match(/(?<!background-)color:\s*([^;]+)/);
-    if (tamanho && !/inherit/.test(tamanho[1])) {
-      mal('assets/css/estilo.css', `${nome} fixa font-size: ${tamanho[1].trim()} — a nota do custo da chamada tem de ter o tamanho do número (DL 59/2021 art. 3.º)`);
-    }
-    if (cor && !/inherit/.test(cor[1])) {
-      mal('assets/css/estilo.css', `${nome} fixa color: ${cor[1].trim()} — a nota do custo da chamada tem de ter a cor do número (DL 59/2021 art. 3.º)`);
-    }
-  }
-}
+/* A regra que exigia a nota do custo da chamada do tamanho e da cor do número foi
+   removida a pedido do cliente, depois de avisado. Se um dia se quiser de volta:
+   verificava que `.nota-chamada`, `.rodape__contactos small` e
+   `.contacto__lista small` não fixam `font-size` nem `color`. */
 
 /* 15b. a secção das marcas na página inicial
 

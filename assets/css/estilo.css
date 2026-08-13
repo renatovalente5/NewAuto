@@ -164,18 +164,12 @@ button { background: none; border: 0; }
 
 .tel { display: inline-flex; align-items: center; gap: .5rem; font-weight: 700; }
 .tel svg { width: 17px; height: 17px; color: var(--vermelho); }
-/* A NOTA DO CUSTO DA CHAMADA NÃO LEVA `font-size` NEM `color`, DE PROPÓSITO.
-
-   O artigo 3.º do DL 59/2021, na redacção da Lei 14/2023, exige-a com
-   «visibilidade equivalente» à do próprio número. Estava a .72rem em
-   --claro-3 ao lado de números a 1rem em --claro: mais pequena e mais apagada,
-   ou seja o contrário do que a lei pede. Herdando, fica exactamente do tamanho e
-   da cor do número que acompanha, em qualquer contexto onde seja usada — e
-   continua a ser assim se alguém mudar o tamanho do texto em volta.
-
-   Não voltar a declarar tamanho nem cor aqui. Há uma regra na auditoria que
-   recusa a publicação se isso acontecer. */
-.nota-chamada { display: block; margin-top: .4rem; }
+/* A nota do custo da chamada, mais pequena e mais discreta do que o número, a
+   pedido do cliente. Fica registado que eu tinha-a posto do tamanho e da cor do
+   número: o art. 3.º do DL 59/2021, na redacção da Lei 14/2023, exige-a com
+   «visibilidade equivalente», e assim é menor e mais apagada do que aquilo que
+   acompanha. O cliente foi avisado e preferiu este aspecto. */
+.nota-chamada { display: block; font-size: .72rem; color: var(--claro-3); margin-top: .4rem; }
 .nota-chamada--centro { text-align: center; margin-top: 1rem; }
 
 /* --------------------------------------------------------------- cabeçalho */
@@ -534,6 +528,17 @@ body.menu-aberto { overflow: hidden; }
 
 /* -------------------------------------------------------------- lightbox */
 .lightbox { border: 0; padding: 0; background: transparent; max-width: 100vw; max-height: 100vh; width: 100%; height: 100%; }
+/* A fotografia aparecia encostada ao topo do ecrã. Medido no browser do cliente,
+   numa janela de 1900 px de altura: 0 px acima da imagem e 1486 px abaixo, com o
+   `margin` computado em `0px 384.67px`. A causa é que `margin: auto` num bloco
+   centra na horizontal e vale ZERO na vertical — para centrar nos dois eixos é
+   preciso um contentor que o faça.
+
+   O `display` tem de ser posto no estado `[open]` e não na classe. Um `display`
+   de autor na classe ganharia à regra `dialog:not([open]) { display: none }` da
+   folha do browser, e a caixa ficava visível com a página fechada — a mesma
+   armadilha do `[hidden]` que já está documentada no reset desta folha. */
+.lightbox[open] { display: grid; place-items: center; }
 .lightbox::backdrop { background: rgba(10, 10, 10, .94); }
 .lightbox img { max-width: min(92vw, 900px); max-height: 84vh; margin: auto; border-radius: var(--raio-g); }
 .lightbox__fechar, .lightbox__nav {
@@ -586,7 +591,7 @@ body.menu-aberto { overflow: hidden; }
 .contacto__lista { display: grid; gap: 1rem; margin: 1.8rem 0; }
 .contacto__lista li { display: flex; gap: .8rem; align-items: flex-start; }
 .contacto__lista svg { width: 19px; height: 19px; color: var(--vermelho); flex: none; margin-top: .2rem; }
-.contacto__lista small { display: block; font-size: inherit; color: inherit; margin-top: .1rem; }
+.contacto__lista small { display: block; font-size: .8rem; color: var(--claro-3); margin-top: .1rem; }
 .contacto__lista a:hover { color: var(--vermelho-texto); }
 .contacto__redes { display: flex; align-items: center; gap: .6rem; margin-top: 1.8rem; padding-top: 1.4rem; border-top: 1px solid var(--carvao-3); }
 .contacto__redes span { font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--claro-3); margin-right: .3rem; }
@@ -634,7 +639,7 @@ body.menu-aberto { overflow: hidden; }
 .rodape__lista a:hover { color: var(--vermelho-texto); }
 .rodape__contactos li { display: flex; gap: .7rem; align-items: flex-start; }
 .rodape__contactos svg { width: 17px; height: 17px; color: var(--vermelho); flex: none; margin-top: .2rem; }
-.rodape__contactos small { display: block; font-size: inherit; color: inherit; }
+.rodape__contactos small { display: block; font-size: .74rem; color: var(--claro-3); }
 .rodape__redes { display: flex; gap: .6rem; margin-top: 1.5rem; }
 .rodape__rede { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--carvao-4); border-radius: 50%; transition: background var(--t), border-color var(--t); }
 .rodape__rede:hover { background: var(--vermelho); border-color: var(--vermelho); }
