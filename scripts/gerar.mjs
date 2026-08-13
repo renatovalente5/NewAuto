@@ -156,7 +156,6 @@ const MENU = [
   { href: '', rot: 'Início' },
   { href: 'viaturas/', rot: 'Viaturas' },
   { href: 'sobre/', rot: 'Sobre nós' },
-  { href: 'garantia/', rot: 'Garantia' },
   { href: 'contactos/', rot: 'Contactos' },
 ];
 
@@ -193,31 +192,16 @@ function cabecalho(pag) {
 }
 
 /* ----------------------------------------------------------------- rodapé */
-/* A identificação do prestador é imposta pelo art. 10.º do DL 7/2004: nome ou
-   denominação social, endereço geográfico, correio electrónico em texto
-   legível, e número de identificação fiscal.
+/* A identificação do prestador — firma, endereço, correio electrónico e NIF — é
+   imposta pelo artigo 10.º do DL 7/2004. Estava aqui no rodapé e saiu a pedido
+   do cliente, porque com o NIF ainda por dar aparecia um marcador à vista em
+   todas as páginas.
 
-   O capital social não está aqui **por opção de desenho** — está ou não está
-   consoante a forma jurídica. O art. 171.º do Código das Sociedades Comerciais
-   obriga as sociedades por quotas e anónimas a indicá-lo nos sítios da
-   Internet; um empresário em nome individual não é uma sociedade e não tem
-   capital social nenhum para indicar. Enquanto a forma jurídica não for
-   conhecida, o campo fica com marcador visível — inventar um número seria pior
-   do que a falta dele. */
-function identificacao() {
-  const e = def.empresa;
-  const l = def.local;
-  const linhas = [
-    e.nome_completo,
-    `${l.morada}, ${l.codigo_postal} ${l.localidade}`,
-    `NIF ${e.nif}`,
-  ];
-  if (e.forma_juridica) linhas.push(e.forma_juridica);
-  if (e.capital_social) linhas.push(`Capital social: ${e.capital_social}`);
-  if (e.conservatoria) linhas.push(`${e.conservatoria}, matrícula ${e.matricula}`);
-  if (def.contactos.email) linhas.push(def.contactos.email);
-  return linhas.map(esc).join(' · ');
-}
+   Não desapareceu do sítio: a obrigação é de «disponibilização permanente, em
+   condições que permitam um acesso fácil e directo», e cumpre-se com a página
+   de Termos e Condições, que está ligada no rodapé de todas as páginas. A
+   auditoria confirma que essa página continua a ter os quatro elementos — se
+   alguém os tirar de lá, a publicação falha. */
 
 function rodape() {
   const legais = [
@@ -258,15 +242,12 @@ function rodape() {
       </div>
     </div>
 
-    <div class="rodape__identificacao">
-      <p>${identificacao()}</p>
-    </div>
 
     <div class="rodape__legal">
       <p>&copy; ${new Date().getFullYear()} ${esc(def.empresa.nome)}</p>
       <ul class="rodape__links">
         ${legais.map(([h, r]) => `<li><a href="${u(h)}">${r}</a></li>`).join('')}
-        <li><a href="${u('contactos/#litigios')}">Resolução de litígios</a></li>
+        <li><a href="${u('resolucao-de-litigios/')}">Resolução de litígios</a></li>
         <li><a href="https://www.livroreclamacoes.pt/inicio" target="_blank" rel="noopener">Livro de Reclamações</a></li>
         <li><a class="rodape__gestao" href="https://app.pagescms.org/${DONO}/${REPO}" target="_blank" rel="nofollow noopener">Gestão</a></li>
       </ul>
@@ -856,16 +837,6 @@ function paginaContactos() {
       <div class="painel-contacto__mapa">${mapa()}</div>
     </div>
 
-    <section class="bloco bloco--litigios" id="litigios">
-      <h2 class="h-secao">Reclamações e resolução de litígios</h2>
-      <p>Pode apresentar reclamação no <a href="https://www.livroreclamacoes.pt/inicio" target="_blank" rel="noopener">Livro de Reclamações electrónico</a>.
-        A entidade competente para apreciar a reclamação é a <b>ASAE — Autoridade de Segurança Alimentar e Económica</b>.</p>
-      <p>Em caso de litígio de consumo, o consumidor pode recorrer ao <b>CICAP — Centro de Informação de Consumo
-        e Arbitragem do Porto</b> (Tribunal Arbitral de Consumo), <a href="https://www.cicap.pt" target="_blank" rel="noopener">www.cicap.pt</a>,
-        territorialmente competente para o concelho de Santa Maria da Feira. Nos litígios de valor até 5.000 €,
-        a NewAuto fica vinculada à arbitragem se o consumidor optar por ela (artigo 14.º da Lei n.º 24/96).
-        Mais informação em <a href="https://www.consumidor.gov.pt" target="_blank" rel="noopener">www.consumidor.gov.pt</a>.</p>
-    </section>
   </div>
 </section>`;
   return pagina({
@@ -965,6 +936,7 @@ function main() {
     'cookies.md': 'cookies/',
     'termos.md': 'termos/',
     'garantia.md': 'garantia/',
+    'resolucao-de-litigios.md': 'resolucao-de-litigios/',
   };
   for (const [f, pag] of Object.entries(legais)) escrever(`${pag}index.html`, paginaTexto(f, pag));
 

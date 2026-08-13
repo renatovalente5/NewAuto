@@ -169,11 +169,34 @@ for (const f of paginas) {
   if (/garantia\s+(de\s+)?12\s*meses/i.test(h)) {
     mal(n, 'menciona «garantia de 12 meses» — revogada pelo DL 84/2021, a garantia legal é de 3 anos');
   }
-  /* A plataforma ODR europeia foi revogada a 20-07-2025; ligar para lá é hoje
-     mandar o consumidor a um sítio que já não existe. */
-  if (/ec\.europa\.eu\/consumers\/odr|plataforma\s+(europeia\s+)?(de\s+)?resolução\s+de\s+litígios\s+em\s+linha/i.test(h)) {
-    mal(n, 'refere a plataforma ODR europeia, desactivada em 20-07-2025');
+  /* A plataforma ODR europeia foi revogada a 20-07-2025 pelo Regulamento (UE)
+     2024/3228; ligar para lá é mandar o consumidor a um sítio que já não existe.
+
+     A regra apanha a LIGAÇÃO, não a menção. A primeira versão procurava a
+     expressão no texto e acusava a própria página que explica que a plataforma
+     desapareceu — explicar que já não existe é precisamente o que se quer. */
+  for (const [, url] of h.matchAll(/href="([^"]*(?:ec\.europa\.eu\/consumers\/odr|webgate\.ec\.europa\.eu\/odr)[^"]*)"/gi)) {
+    mal(n, `liga para a plataforma ODR europeia (${url}), desactivada em 20-07-2025`);
   }
+}
+
+/* 11b. A identificação do prestador saiu do rodapé a pedido do cliente e vive
+        agora na página de Termos, ligada em todos os rodapés. O artigo 10.º do
+        DL 7/2004 exige quatro elementos — denominação, endereço, NIF e correio
+        electrónico. Esta verificação existe porque a conformidade passou a
+        depender de uma só página: se alguém lhe tirar a secção, falha aqui. */
+{
+  const termos = readFileSync(join(SAIDA, 'termos/index.html'), 'utf8');
+  const l = DEF.local;
+  for (const [o, pedaco] of [
+    ['denominação social', DEF.empresa.nome_completo],
+    ['endereço', l.morada],
+    ['código postal', l.codigo_postal],
+    ['NIF', DEF.empresa.nif],
+  ]) {
+    if (!termos.includes(pedaco)) mal('/termos/index.html', `a identificação do prestador não indica a ${o} (DL 7/2004 art. 10.º)`);
+  }
+  if (!/correio electr[óo]nico/i.test(termos)) mal('/termos/index.html', 'a identificação do prestador não indica o correio electrónico (DL 7/2004 art. 10.º)');
 }
 
 /* 12. dados das viaturas: os sete campos do DL 74/93, e sem repetições */
