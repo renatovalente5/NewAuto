@@ -156,6 +156,7 @@ const MENU = [
   { href: '', rot: 'Início' },
   { href: 'viaturas/', rot: 'Viaturas' },
   { href: 'sobre/', rot: 'Sobre nós' },
+  { href: 'garantia/', rot: 'Garantia' },
   { href: 'contactos/', rot: 'Contactos' },
 ];
 
@@ -204,11 +205,13 @@ function cabecalho(pag) {
    alguém os tirar de lá, a publicação falha. */
 
 function rodape() {
+  /* A Garantia saiu desta fila quando voltou à navbar: a coluna «Navegar» do
+     rodapé é gerada a partir do MENU, e tê-la nos dois sítios escrevia
+     «Garantia» duas vezes no mesmo rodapé. */
   const legais = [
     ['privacidade/', 'Política de privacidade'],
     ['cookies/', 'Cookies'],
     ['termos/', 'Termos e condições'],
-    ['garantia/', 'Garantia'],
   ];
   return `<footer class="rodape">
   <div class="envolve">
@@ -237,9 +240,6 @@ function rodape() {
           <li>${ic.zap}<span><a href="https://wa.me/${def.contactos.whatsapp}" target="_blank" rel="noopener">${esc(def.contactos.whatsapp_texto)}</a>
             <small>WhatsApp ${NOTA_CHAMADA}</small></span></li>
           <li>${ic.pin}<span>${esc(def.local.morada)}<br>${esc(def.local.codigo_postal)} ${esc(def.local.localidade)}</span></li>
-          <!-- O horário saiu do rodapé a pedido. Continua na página de contactos
-               e no openingHoursSpecification do AutoDealer, que é de onde a
-               Google o lê para a ficha do negócio. -->
         </ul>
       </div>
     </div>
@@ -310,9 +310,10 @@ ${avisoCookies()}
 function avisoCookies() {
   return `<div class="cookies" id="cookies" hidden>
   <div class="cookies__corpo">
-    <p><b>Este sítio não instala cookies.</b> Não temos análise de tráfego nem publicidade.
-      O mapa da página de contactos só é carregado depois de o autorizar.
-      <a href="${u('cookies/')}">Saber mais</a></p>
+    <p><b>Este sítio não instala cookies.</b> Não temos análise de tráfego nem publicidade. A única
+      coisa que precisa da sua autorização é o mapa do Google na página de contactos, que vem dos
+      servidores do Google e pode instalar cookies. Se aceitar, o mapa passa a ser carregado; se
+      recusar, fica por carregar. <a href="${u('cookies/')}">Saber mais</a></p>
     <div class="cookies__botoes">
       <button class="btn btn--linha" type="button" data-cookies="recusar">Recusar</button>
       <button class="btn btn--cheio" type="button" data-cookies="aceitar">Aceitar</button>
@@ -348,10 +349,10 @@ const negocioLD = {
     addressCountry: 'PT',
   },
   geo: { '@type': 'GeoCoordinates', latitude: def.local.latitude, longitude: def.local.longitude },
-  openingHoursSpecification: def.horario.estruturado.map((h) => ({
-    '@type': 'OpeningHoursSpecification',
-    dayOfWeek: h.dias, opens: h.abre, closes: h.fecha,
-  })),
+  /* Sem `openingHoursSpecification` a pedido do cliente: o horário deixou de
+     sair do rodapé e também não é declarado aqui, pelo que a Google não o mostra
+     na ficha do negócio. O horário continua a existir em definicoes.json e na
+     página de contactos — basta devolver esta propriedade para o recuperar. */
   sameAs: [def.redes.instagram, def.redes.facebook].filter(Boolean),
   foundingDate: String(def.empresa.desde),
 };

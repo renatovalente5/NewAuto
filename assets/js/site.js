@@ -15,6 +15,7 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch { /* navegação privada */ } };
   const lido = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+  const esquecer = (k) => { try { localStorage.removeItem(k); } catch { /* navegação privada */ } };
 
   /* ------------------------------------------------------------------------
      1. O cabeçalho encolhe ao descer e volta a crescer no topo.
@@ -245,13 +246,21 @@
      O embed do Google instala cookies mal é carregado, e o consentimento tem
      de ser prévio (artigo 5.º da Lei 41/2004). Por isso o endereço vive num
      atributo e só se transforma em <iframe> depois do clique.
+
+     As duas funções ficam guardadas fora deste bloco porque o aviso de cookies,
+     mais abaixo, também as usa: aceitar ali tem de carregar o mapa na hora, e
+     recusar tem de o descarregar. Antes não usava, e quem aceitava as cookies
+     ficava a olhar para um segundo botão sem entender porquê.
   ------------------------------------------------------------------------ */
+  const CHAVE_MAPA = 'na:mapa';
+  let carregarMapa = null;
+  let descarregarMapa = null;
+
   const mapa = $('#mapa');
   if (mapa) {
-    const CHAVE = 'na:mapa';
     const aviso = $('#mapa-aviso');
 
-    function carregar() {
+    carregarMapa = () => {
       if ($('iframe', mapa)) return;
       const f = document.createElement('iframe');
       f.src = mapa.dataset.mapa;
@@ -261,19 +270,30 @@
       f.allowFullscreen = true;
       mapa.appendChild(f);
       if (aviso) aviso.hidden = true;
-    }
+    };
 
-    $('#btn-mapa')?.addEventListener('click', () => { guardar(CHAVE, '1'); carregar(); });
-    if (lido(CHAVE) === '1') carregar();
+    /* Retirar o consentimento tem de ser tão fácil como dá-lo (artigo 7.º n.º 3
+       do RGPD), por isso o iframe sai mesmo — não basta esconder. */
+    descarregarMapa = () => {
+      $('iframe', mapa)?.remove();
+      if (aviso) aviso.hidden = false;
+    };
+
+    $('#btn-mapa')?.addEventListener('click', () => { guardar(CHAVE_MAPA, '1'); carregarMapa(); });
+    if (lido(CHAVE_MAPA) === '1') carregarMapa();
   }
 
   /* ------------------------------------------------------------------------
      6. Aviso de cookies.
 
-     Este site não instala cookies nenhum. O aviso existe porque o cliente o
-     pediu e porque dizer «não há cookies» é melhor do que deixar a dúvida — e
-     os dois botões fazem exactamente a mesma coisa: fechar e não voltar a
-     perguntar. Recusar não pode custar mais do que aceitar.
+     Este site não instala cookies nenhum. A única coisa que precisa de
+     consentimento em todo o sítio é o mapa do Google na página de contactos, e
+     é isso que estes dois botões decidem — o aviso di-lo por palavras.
+
+     Aceitar carrega o mapa na hora, esteja o visitante na página de contactos
+     ou não (fica autorizado para quando lá chegar). Recusar retira a
+     autorização e descarrega o mapa se ele já estiver aberto. Recusar continua
+     a custar exactamente um clique, como aceitar.
   ------------------------------------------------------------------------ */
   const cookies = $('#cookies');
   if (cookies) {
@@ -284,7 +304,10 @@
       setTimeout(() => { cookies.hidden = false; }, 700);
     }
     $$('[data-cookies]', cookies).forEach((b) => b.addEventListener('click', () => {
+      const aceitou = b.dataset.cookies === 'aceitar';
       guardar(CHAVE, b.dataset.cookies);
+      if (aceitou) { guardar(CHAVE_MAPA, '1'); carregarMapa?.(); }
+      else { esquecer(CHAVE_MAPA); descarregarMapa?.(); }
       cookies.hidden = true;
     }));
   }
