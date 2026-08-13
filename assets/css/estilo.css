@@ -513,11 +513,11 @@ body.menu-aberto { overflow: hidden; }
   -webkit-mask: var(--simbolo) center / contain no-repeat;
   mask: var(--simbolo) center / contain no-repeat;
 }
-.marcas__nome { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; text-align: center; }
+.marcas__nome { font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; text-align: center; }
 /* Marca sem ficheiro de símbolo: o nome ocupa o lugar dele, com o mesmo peso
    visual, para a fila não ficar com um buraco. */
 .marcas__ligacao--nome .marcas__nome {
-  font-size: .92rem; letter-spacing: .02em; text-transform: none; font-weight: 700;
+  font-size: .82rem; letter-spacing: .02em; text-transform: none; font-weight: 700;
   color: var(--claro);
 }
 
