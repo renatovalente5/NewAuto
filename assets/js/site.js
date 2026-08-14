@@ -315,44 +315,47 @@
   /* ------------------------------------------------------------------------
      7. Carrocel das marcas, a girar sozinho.
 
-     Scroll nativo e não `transform`: já foi medido noutro projecto que ligações
-     dentro de uma faixa animada por `transform` não são clicáveis, porque o alvo
-     desliza entre o `mousedown` e o `mouseup`.
+     Scroll nativo e não `transform` para o grosso do movimento: já foi medido
+     noutro projecto que ligações dentro de uma faixa animada por `transform` não
+     são clicáveis, porque o alvo desliza entre o `mousedown` e o `mouseup`.
+
+     PORQUE É QUE A FAIXA TRAVAVA. O `scrollLeft` de um contentor só assenta em
+     pixéis inteiros — medido no browser do cliente: escrever 100,5 lê 101,
+     escrever 100,25 lê 100. A versão anterior fazia
+     `scrollLeft = scrollLeft + velocidade * dt`, ou seja LIA DE VOLTA um valor já
+     arredondado e somava-lhe meio pixel. Conforme o `dt` oscilava, uns quadros
+     arredondavam para baixo e a faixa não andava nada, outros para cima e saltava
+     um pixel inteiro. Travar e saltar, e a fracção deitada fora a cada quadro.
+
+     Agora a posição vive aqui, em vírgula flutuante, e nunca é lida do DOM. A
+     parte inteira vai no `scrollLeft` e a fracção vai num `translateX` da pista,
+     que aceita sub-pixel. O deslocamento do `transform` nunca passa de 1 px, por
+     isso não afecta onde os cliques aterram.
 
      A VOLTA CONTÍNUA. O HTML traz as marcas uma só vez — sem JavaScript fica uma
-     fila limpa que se arrasta com o dedo. É aqui que se clonam, e clona-se o
-     que for preciso: para a volta não deixar buraco, o conteúdo total tem de
-     chegar à largura de um grupo MAIS a largura visível, senão ao dar a volta
-     aparece vazio à direita. Com sete marcas num ecrã de 1440 isso são três
-     cópias, num telemóvel são duas.
+     fila limpa que se arrasta com o dedo. Os clones são feitos aqui, tantos
+     quantos a largura pedir: para a volta não deixar buraco, o conteúdo total tem
+     de chegar à largura de um grupo mais a largura visível. Levam `aria-hidden` e
+     `tabindex="-1"` — existem para os olhos, não para quem ouve a página.
 
-     Os clones levam `aria-hidden` e `tabindex="-1"`: existem para os olhos, não
-     para quem ouve a página, senão um leitor de ecrã anunciava as marcas duas e
-     três vezes. E como levam texto, continuam a passar a regra do auditor que
-     exige nome acessível em toda a ligação.
-
-     O movimento é feito aqui e não em CSS por uma razão medida: a regra global
-     de `prefers-reduced-motion` corta a duração das animações para .01ms sem
-     lhes tocar nas iterações, o que numa animação infinita não a pára — acelera-a
-     até piscar. Em JavaScript, «menos movimento» pode ser movimento nenhum.
-
-     Não há botão de parar, a pedido. Pára ao passar o rato e ao receber foco —
-     que é também o que faz um clique acertar num alvo em andamento — e não
-     arranca de todo em quem pediu menos movimento.
+     O movimento é feito em JavaScript e não em CSS por uma razão medida: a regra
+     global de `prefers-reduced-motion` corta a duração das animações para .01ms
+     sem lhes tocar nas iterações, o que numa animação infinita não a pára —
+     acelera-a até piscar. Aqui, «menos movimento» é movimento nenhum.
   ------------------------------------------------------------------------ */
   const fila = $('#marcas');
-  if (fila && fila.children.length) {
+  const pista = $('#marcas-pista');
+  if (fila && pista && pista.children.length) {
     const menosMovimento = matchMedia('(prefers-reduced-motion: reduce)');
-    const originais = [...fila.children];
+    const originais = [...pista.children];
     let larguraGrupo = 0;
+    let pos = 0;
 
-    /* Clonar até haver conteúdo para dar a volta sem costura. O limite de 12
-       existe só para o caso de uma medição estranha devolver zero e isto tentar
-       encher a página de clones. */
     function preparar() {
-      for (const el of [...fila.children]) if (el.dataset.clone) el.remove();
+      for (const el of [...pista.children]) if (el.dataset.clone) el.remove();
+      const gap = parseFloat(getComputedStyle(pista).columnGap) || 0;
       larguraGrupo = originais.reduce((a, el) => a + el.getBoundingClientRect().width, 0)
-        + parseFloat(getComputedStyle(fila).columnGap || 0) * originais.length;
+        + gap * originais.length;
       if (!larguraGrupo) return;
 
       const preciso = larguraGrupo + fila.clientWidth;
@@ -363,16 +366,17 @@
           c.dataset.clone = '1';
           c.setAttribute('aria-hidden', 'true');
           c.querySelectorAll('a').forEach((a) => a.setAttribute('tabindex', '-1'));
-          fila.appendChild(c);
+          pista.appendChild(c);
         }
         copias++;
       }
+      pos = fila.scrollLeft;
     }
 
     let sobre = false;
     let visivel = true;
     let ultimo = 0;
-    const VELOCIDADE = 30;   // px por segundo
+    const VELOCIDADE = 34;   // px por segundo
 
     function passo(agora) {
       if (!ultimo) ultimo = agora;
@@ -380,11 +384,13 @@
       ultimo = agora;
 
       if (!sobre && visivel && !menosMovimento.matches && larguraGrupo > 0) {
-        let x = fila.scrollLeft + VELOCIDADE * dt;
-        /* A costura: à largura de um grupo o que se vê é igual ao início, por
-           isso voltar atrás essa distância não se nota. */
-        if (x >= larguraGrupo) x -= larguraGrupo;
-        fila.scrollLeft = x;
+        pos += VELOCIDADE * dt;
+        /* À largura de um grupo o que se vê é igual ao início, por isso voltar
+           atrás essa distância não se nota. */
+        if (pos >= larguraGrupo) pos -= larguraGrupo;
+        const inteiro = Math.floor(pos);
+        fila.scrollLeft = inteiro;
+        pista.style.transform = `translateX(${-(pos - inteiro).toFixed(3)}px)`;
       }
       requestAnimationFrame(passo);
     }
@@ -393,9 +399,13 @@
     fila.addEventListener('pointerleave', () => { sobre = false; });
     fila.addEventListener('focusin', () => { sobre = true; });
     fila.addEventListener('focusout', () => { sobre = false; });
-    /* Enquanto o dedo arrasta, não empurrar por cima do gesto. */
     fila.addEventListener('pointerdown', () => { sobre = true; });
     addEventListener('pointerup', () => { sobre = false; });
+
+    /* Se for o utilizador a arrastar, a nossa posição fica desactualizada e ao
+       retomar a faixa saltaria para trás. Enquanto ele mexe, seguimos o que ele
+       faz. */
+    fila.addEventListener('scroll', () => { if (sobre) pos = fila.scrollLeft; }, { passive: true });
 
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(([e]) => { visivel = e.isIntersecting; }).observe(fila);

@@ -480,10 +480,14 @@ body.menu-aberto { overflow: hidden; }
    JavaScript, com `scrollBy`, precisamente para poder ser desligado em condições
    em vez de ser acelerado até piscar. */
 .secao--marcas .marcas {
-  display: flex; gap: .7rem; margin-top: 1.8rem;
+  margin-top: 1.8rem;
   overflow-x: auto; overscroll-behavior-x: contain;
   scrollbar-width: none; padding-bottom: .2rem;
 }
+/* A pista é o que se desloca. O `will-change` põe-na numa camada própria, para o
+   deslocamento de sub-pixel não obrigar a repintar as 21 máscaras dos símbolos a
+   cada quadro. */
+.marcas__pista { display: flex; gap: .7rem; will-change: transform; }
 .secao--marcas .marcas::-webkit-scrollbar { display: none; }
 /* `justify-content: center` está fora de questão num contentor que rola: quando
    o conteúdo transborda, o início fica inalcançável em todos os motores. */

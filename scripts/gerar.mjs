@@ -573,8 +573,14 @@ function secaoMarcas() {
       </div>
     </div>
 
-    <ul class="marcas" id="marcas" tabindex="0" role="list"
-        aria-label="Marcas com viaturas em stock" data-grupo="${marcas.length}">${itens}</ul>
+    <!-- Dois elementos e não um: o div é o que rola e o ul é o que desliza.
+         O scroll de um contentor só assenta em pixéis inteiros, e a esta velocidade
+         cada quadro pede meio pixel — daí a faixa travar. O ul leva a fracção num
+         transform, que aceita sub-pixel. Ver assets/js/site.js, bloco 7. -->
+    <div class="marcas" id="marcas" tabindex="0" role="group"
+         aria-label="Marcas com viaturas em stock">
+      <ul class="marcas__pista" id="marcas-pista" role="list" data-grupo="${marcas.length}">${itens}</ul>
+    </div>
 
     <!-- Uma linha, e não um parágrafo. Nenhuma lei manda imprimir este texto: o que
          está proibido é dar a impressão de ser concessionário autorizado sem o ser
