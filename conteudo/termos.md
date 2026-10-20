@@ -9,11 +9,11 @@ _Última actualização: 13 de agosto de 2026_
 
 ## Identificação do prestador
 
-- **Denominação:** NewAuto — Comércio Automóvel
-- **Endereço:** Largo Igreja 133, 4535-335 Paços de Brandão, concelho de Santa Maria da Feira
-- **NIF:** PLACEHOLDER-NIF
-- **Telefone:** 917 849 998 (Chamada para a rede móvel nacional)
-- **Correio electrónico:** PLACEHOLDER-EMAIL
+- **Denominação:** {{empresa}}
+- **Endereço:** {{morada}}, concelho de {{concelho}}
+- **NIF:** {{nif}}{{sociedade}}
+- **Telefone:** {{telefone}} {{nota_chamada}}
+- **Correio electrónico:** {{email}}
 
 Esta informação é prestada nos termos do artigo 10.º do **Decreto-Lei n.º 7/2004**, de 7 de janeiro, que regula o comércio electrónico, e está acessível a partir do rodapé de todas as páginas deste sítio.
 

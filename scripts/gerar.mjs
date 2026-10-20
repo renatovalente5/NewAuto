@@ -15,6 +15,10 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync
 import { join, dirname, resolve, relative, basename, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+/* As regras dos dados (as mesmas da guarda do CI e do painel): o que é um
+   telefone, a nota do custo da chamada, um endereço que se pode pôr num link,
+   o título de uma viatura e o endereço da página. */
+import { notaDaChamada, NOTAS_DA_CHAMADA, urlHttps, tituloDe, slugDoFicheiro, semPrefixo, BIBLIOTECA, GARANTIAS_USADO, nifValido } from '../.github/regras.mjs';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 /* A pasta de saída é configurável para o build de produção poder ser verificado
@@ -47,16 +51,46 @@ const abs = (p) => `${SITE}${u(p)}`;
 const ler = (p) => JSON.parse(readFileSync(join(RAIZ, p), 'utf8'));
 const def = ler('data/definicoes.json');
 
+/* Os textos do site têm sempre alguma coisa: um título apagado no painel não
+   pode deixar a página inicial sem <h1> (as regras avisam o dono). */
+const textoOu = (v, d) => (typeof v === 'string' && v.trim() ? v.trim() : d);
+def.textos = {
+  ...def.textos,
+  reclamo: textoOu(def.textos?.reclamo, [def.local?.localidade, def.local?.concelho].filter(Boolean).join(' · ')),
+  hero_titulo: textoOu(def.textos?.hero_titulo, 'O teu próximo carro está aqui.'),
+  hero_texto: textoOu(def.textos?.hero_texto, ''),
+  assinatura: textoOu(def.textos?.assinatura, ''),
+  sobre_titulo: textoOu(def.textos?.sobre_titulo, `Sobre a ${def.empresa?.nome ?? 'NewAuto'}`),
+  sobre_texto: textoOu(def.textos?.sobre_texto, ''),
+};
+
+/* O ENDEREÇO DE CADA PÁGINA É O NOME DO FICHEIRO, e não o campo «slug»: os
+   dois só podiam divergir num commit à mão, e o nome é o que o painel nunca
+   muda. O título sai da marca, do modelo e da versão quando não está escrito. */
 const viaturas = readdirSync(join(RAIZ, 'data/viaturas'))
   .filter((f) => f.endsWith('.json'))
-  .map((f) => ler(`data/viaturas/${f}`))
+  .map((f) => { const v = ler(`data/viaturas/${f}`); return { ...v, slug: slugDoFicheiro(f), titulo: textoOu(v.titulo, tituloDe(v)) }; })
   .filter((v) => !v.oculta)
   .sort((a, b) => (a.ordem ?? 999) - (b.ordem ?? 999));
 
 const disponiveis = viaturas.filter((v) => v.estado !== 'vendida');
+
+/* A GARANTIA QUE O SITE PROMETE. O que o site diz vincula o stand (DL 84/2021,
+   art. 43.º): «3 anos em todas» só se todas as à venda têm a garantia legal
+   inteira. Uma com os 18 meses por acordo escrito (escolhidos no painel) diz
+   a dela na ficha, e as frases gerais deixam de dizer «3 anos». */
+const GARANTIA_LEGAL = GARANTIAS_USADO[0];
+const tresAnos = (v) => v.garantia_usado === GARANTIA_LEGAL;
+const TODAS_TRES = disponiveis.every(tresAnos);
+const garantiaGeral = (maiuscula = true) => `${maiuscula ? 'G' : 'g'}arantia legal${TODAS_TRES ? ' de 3 anos' : ''}`;
 const vendidas = viaturas.filter((v) => v.estado === 'vendida')
   .sort((a, b) => String(b.data_venda).localeCompare(String(a.data_venda)));
 
+/* UM TEXTO DO DONO EM PARÁGRAFOS: uma linha em branco começa um parágrafo, e
+   uma mudança de linha fica uma quebra (os separadores de linha do Unicode,
+   que vêm em texto colado de outros programas, valem uma mudança de linha). */
+const paragrafos = (t, classe = 'bloco__texto') => String(t ?? '').replace(/[\u2028\u2029]/g, '\n').replace(/\r\n?/g, '\n').trim()
+  .split(/\n{2,}/).map((p) => `<p class="${classe}">${esc(p).replace(/\n/g, '<br>')}</p>`).join('\n          ');
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -158,7 +192,7 @@ const ic = {
    828 px. Têm 414 px de origem — vieram das redes sociais —, por isso o 828 é
    uma ampliação feita com cuidado, e os cartões nunca pedem mais de 414.
 
-   As que o dono do stand carrega no Pages CMS vão para `assets/viaturas/` e
+   As que o dono do stand carrega no painel vão para `assets/viaturas/<slug>/` e
    ficam listadas em `galeria`. A Action corre `imagens.py --galeria`, que tira
    delas 480, 960 e 1600 px para `assets/viaturas/_v/`. Se essas variantes não
    existirem, serve-se o original — com as medidas lidas do ficheiro. */
@@ -171,11 +205,14 @@ const USOS = {
 /* O caminho gravado pelo backoffice pode vir com ou sem barra inicial, e com ou
    sem o nome do repositório à frente — depende da configuração do `media` à
    data em que a fotografia foi carregada. Aceitam-se as três formas. */
-function caminhoGaleria(p) {
-  let r = String(p).trim().replace(/^\/+/, '');
-  if (r.startsWith(`${REPO}/`)) r = r.slice(REPO.length + 1);
-  return r;
-}
+const caminhoGaleria = (p) => semPrefixo(p);
+/* A variante de uma fotografia da biblioteca leva a pasta dela: duas viaturas
+   com uma «foto-1.jpg» cada tinham a mesma variante. assets/viaturas/bmw/x.jpg
+   → assets/viaturas/_v/bmw/x-960.webp (o scripts/imagens.py faz o mesmo). */
+const raizDaVariante = (rel) => {
+  const semExt = rel.slice(0, rel.length - extname(rel).length);
+  return `assets/viaturas/_v/${semExt.startsWith(`${BIBLIOTECA}/`) ? semExt.slice(BIBLIOTECA.length + 1) : basename(semExt)}`;
+};
 
 function nFotos(v) {
   return (v.galeria?.length ? v.galeria.length : v.fotos_origem?.length) || 0;
@@ -187,12 +224,11 @@ function fonteFoto(v, n, uso = 'galeria') {
     const rel = caminhoGaleria(v.galeria[n - 1]);
     const ficheiro = join(RAIZ, rel);
     const m = (existsSync(ficheiro) && medidas(ficheiro)) || { w: 1600, h: 1200 };
-    const raiz = basename(rel, extname(rel));
+    const raiz = raizDaVariante(rel);
     const variantes = USOS[uso].galeria
-      .filter((w) => existsSync(join(RAIZ, `assets/viaturas/_v/${raiz}-${w}.webp`)))
-      .map((w) => `${u(`assets/viaturas/_v/${raiz}-${w}.webp`)} ${Math.min(w, m.w)}w`);
-    const jpg = existsSync(join(RAIZ, `assets/viaturas/_v/${raiz}-960.jpg`))
-      ? u(`assets/viaturas/_v/${raiz}-960.jpg`) : u(rel);
+      .filter((w) => existsSync(join(RAIZ, `${raiz}-${w}.webp`)))
+      .map((w) => `${u(`${raiz}-${w}.webp`)} ${Math.min(w, m.w)}w`);
+    const jpg = existsSync(join(RAIZ, `${raiz}-960.jpg`)) ? u(`${raiz}-960.jpg`) : u(rel);
     return { srcset: variantes.join(', '), src: jpg, w: m.w, h: m.h, grande: variantes.length ? variantes.at(-1).split(' ')[0] : u(rel) };
   }
   const base = `assets/viaturas/${v.slug}/${String(n).padStart(2, '0')}`;
@@ -210,9 +246,8 @@ function foto(v, n, { uso = 'galeria', sizes, prioritaria = false, alt = '', cla
 
 function urlPartilha(v) {
   if (v.galeria?.length) {
-    const raiz = basename(caminhoGaleria(v.galeria[0]), extname(caminhoGaleria(v.galeria[0])));
-    return existsSync(join(RAIZ, `assets/viaturas/_v/${raiz}-og.jpg`))
-      ? abs(`assets/viaturas/_v/${raiz}-og.jpg`) : abs(caminhoGaleria(v.galeria[0]));
+    const raiz = raizDaVariante(caminhoGaleria(v.galeria[0]));
+    return existsSync(join(RAIZ, `${raiz}-og.jpg`)) ? abs(`${raiz}-og.jpg`) : abs(caminhoGaleria(v.galeria[0]));
   }
   return abs(`assets/viaturas/${v.slug}/og.jpg`);
 }
@@ -221,7 +256,15 @@ function urlPartilha(v) {
 /* A lei obriga a indicar o custo da chamada sempre que se publica um número
    (DL 59/2021, art. 3.º, na redacção da Lei 14/2023). Uma constante só, para
    não haver um sítio onde alguém se esqueça. */
-const NOTA_CHAMADA = '(Chamada para a rede móvel nacional)';
+/* A nota sai do próprio número: um fixo diz «rede fixa». O WhatsApp é sempre
+   um telemóvel. */
+const NOTA_CHAMADA = notaDaChamada(def.contactos.telefone) ?? NOTAS_DA_CHAMADA.movel;
+const NOTA_ZAP = NOTAS_DA_CHAMADA.movel;
+/* Só um endereço https:// vai para um link (as regras dizem porquê). Sem o do
+   Google Maps, o «Como chegar» procura a morada. */
+const MAPA = urlHttps(def.local.mapa) ? def.local.mapa.trim()
+  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${def.local.morada}, ${def.local.codigo_postal} ${def.local.localidade}`)}`;
+const REDES = [['instagram', 'Instagram'], ['facebook', 'Facebook']].filter(([k]) => urlHttps(def.redes?.[k])).map(([k, nome]) => ({ k, nome, url: def.redes[k].trim() }));
 const TEL = `tel:+351${def.contactos.telefone}`;
 const wa = (texto = '', numero = def.contactos.whatsapp) => `https://wa.me/${numero}${texto ? `?text=${encodeURIComponent(texto)}` : ''}`;
 const MSG_GERAL = 'Olá! Vi o vosso site e gostava de saber mais.';
@@ -292,8 +335,7 @@ function rodape() {
           <p class="rodape__frase">${esc(def.textos.assinatura)}</p>
           <p class="rodape__desde">${esc(def.local.localidade)} · desde ${def.empresa.desde}</p>
           <div class="rodape__redes">
-            <a href="${esc(def.redes.instagram)}" target="_blank" rel="noopener" aria-label="Instagram da NewAuto">${ic.ig}</a>
-            <a href="${esc(def.redes.facebook)}" target="_blank" rel="noopener" aria-label="Facebook da NewAuto">${ic.fb}</a>
+            ${REDES.map((r) => `<a href="${esc(r.url)}" target="_blank" rel="noopener" aria-label="${r.nome} da NewAuto">${r.k === 'instagram' ? ic.ig : ic.fb}</a>`).join('')}
             <a href="${wa(MSG_GERAL)}" target="_blank" rel="noopener" aria-label="WhatsApp da NewAuto">${ic.zap}</a>
           </div>
         </div>
@@ -311,8 +353,8 @@ function rodape() {
         <h2 class="rodape__titulo">Contactos</h2>
         <ul class="rodape__lista rodape__contactos">
           <li>${ic.tel}<span><a href="${TEL}">${esc(def.contactos.telefone_texto)}</a><small>${NOTA_CHAMADA}</small></span></li>
-          <li>${ic.zap}<span><a href="${wa(MSG_GERAL)}" target="_blank" rel="noopener">${esc(def.contactos.whatsapp_texto)}</a><small>WhatsApp ${NOTA_CHAMADA}</small></span></li>
-          <li>${ic.pin}<span><a href="${esc(def.local.mapa)}" target="_blank" rel="noopener">${esc(def.local.morada)}<br>${esc(def.local.codigo_postal)} ${esc(def.local.localidade)}</a></span></li>
+          <li>${ic.zap}<span><a href="${wa(MSG_GERAL)}" target="_blank" rel="noopener">${esc(def.contactos.whatsapp_texto)}</a><small>WhatsApp ${NOTA_ZAP}</small></span></li>
+          <li>${ic.pin}<span><a href="${esc(MAPA)}" target="_blank" rel="noopener">${esc(def.local.morada)}<br>${esc(def.local.codigo_postal)} ${esc(def.local.localidade)}</a></span></li>
         </ul>
       </div>
     </div>
@@ -374,7 +416,7 @@ function pagina({ pag = '', titulo, descricao, corpo, jsonld = [], og, classe = 
 <link rel="stylesheet" href="${versao('assets/css/estilo.css')}">
 ${naoIndexar ? '<meta name="robots" content="noindex">' : ''}${dominio ? '' : '<!-- Enquanto o stand não tiver domínio, o site vive num endereço\n     provisório do GitHub. Deixá-lo indexar punha o Google a guardar o\n     endereço errado. Escrever o ficheiro CNAME faz esta linha desaparecer. -->\n<meta name="robots" content="noindex, nofollow">'}
 <script type="speculationrules">{"prerender":[{"where":{"href_matches":"${BASE}/viaturas/*"},"eagerness":"moderate"}]}</script>
-${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j)}</script>`).join('\n')}
+${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, '\\u003c')}</script>`).join('\n')}
 </head>
 <body class="${classe}">
 ${cabecalho(pag)}
@@ -404,7 +446,7 @@ const negocioLD = {
   image: abs('assets/img/og.jpg'),
   logo: abs('assets/img/logo-claro.png'),
   telephone: `+351${def.contactos.telefone}`,
-  vatID: `PT${def.empresa.nif}`,
+  ...(nifValido(String(def.empresa.nif ?? '')) ? { vatID: `PT${def.empresa.nif}` } : {}),
   address: {
     '@type': 'PostalAddress',
     streetAddress: def.local.morada,
@@ -414,7 +456,7 @@ const negocioLD = {
     addressCountry: 'PT',
   },
   geo: { '@type': 'GeoCoordinates', latitude: def.local.latitude, longitude: def.local.longitude },
-  sameAs: [def.redes.instagram, def.redes.facebook].filter(Boolean),
+  sameAs: REDES.map((r) => r.url),
   foundingDate: String(def.empresa.desde),
 };
 
@@ -594,7 +636,7 @@ function paginaInicial() {
     </div>
     <ul class="capa__selos" role="list">
       <li>${ic.conta}Quilometragem certificada</li>
-      <li>${ic.escudo}Garantia legal de 3 anos</li>
+      <li>${ic.escudo}${garantiaGeral()}</li>
       <li>${ic.troca}Aceitamos retoma</li>
     </ul>
   </div>
@@ -633,7 +675,7 @@ ${existsSync(join(RAIZ, 'assets/img/vendidos')) ? `<section class="secao secao--
       <h2 class="h-secao">Vem ver ao vivo</h2>
       <p class="visita__morada">${ic.pin}<span>${esc(def.local.morada)}<br>${esc(def.local.codigo_postal)} ${esc(def.local.localidade)}, ${esc(def.local.concelho)}</span></p>
       <div class="visita__accoes">
-        <a class="btn btn--escuro" href="${esc(def.local.mapa)}" target="_blank" rel="noopener">${ic.pin}<span>Como chegar</span></a>
+        <a class="btn btn--escuro" href="${esc(MAPA)}" target="_blank" rel="noopener">${ic.pin}<span>Como chegar</span></a>
         <a class="btn btn--secundario" href="${TEL}">${ic.tel}<span>${esc(def.contactos.telefone_texto)}</span></a>
       </div>
       <p class="nota-chamada">${NOTA_CHAMADA}</p>
@@ -648,7 +690,7 @@ ${existsSync(join(RAIZ, 'assets/img/vendidos')) ? `<section class="secao secao--
   return pagina({
     pag: '',
     titulo: 'NewAuto — Carros usados em Paços de Brandão',
-    descricao: `Stand de automóveis usados em Paços de Brandão, Santa Maria da Feira. ${quantas(n)} com quilometragem certificada e garantia legal de 3 anos.`,
+    descricao: `Stand de automóveis usados em Paços de Brandão, Santa Maria da Feira. ${quantas(n)} com quilometragem certificada e ${garantiaGeral(false)}.`,
     corpo,
     classe: 'pagina-inicial',
     jsonld: [negocioLD, {
@@ -700,7 +742,7 @@ function paginaViaturas() {
   <div class="envolve">
     ${migalhas([{ nome: 'Início', href: '' }, { nome: 'Viaturas' }])}
     <h1 class="h-pagina">Viaturas em stock</h1>
-    <p class="cabeca-pagina__texto">Preços finais, com IVA incluído. Garantia legal de 3 anos em todas.</p>
+    <p class="cabeca-pagina__texto">Preços finais, com IVA incluído. ${garantiaGeral()} em todas.</p>
   </div>
 </section>
 
@@ -763,7 +805,7 @@ function paginaViaturas() {
   return pagina({
     pag: 'viaturas/',
     titulo: 'Viaturas usadas em stock | NewAuto, Paços de Brandão',
-    descricao: `${n} viaturas usadas em stock no NewAuto, em Paços de Brandão: ${[...new Set(disponiveis.map((v) => v.marca))].slice(0, 5).join(', ')} e mais. Preços finais, garantia legal de 3 anos.`,
+    descricao: `${n} viaturas usadas em stock no NewAuto, em Paços de Brandão: ${[...new Set(disponiveis.map((v) => v.marca))].slice(0, 5).join(', ')} e mais. Preços finais, ${garantiaGeral(false)}.`,
     corpo,
     depois: folha,
     classe: 'pagina-montra',
@@ -889,7 +931,7 @@ function paginaViatura(v) {
             <button class="ligacao" type="button" id="partilhar" data-titulo="${esc(`${v.titulo} — NewAuto`)}" data-url="${esc(url)}" hidden>${ic.partilhar}Partilhar</button>
           </div>`}
           <ul class="painel__confianca" role="list">
-            <li>${ic.escudo}<span>Garantia legal de 3 anos</span></li>
+            <li>${ic.escudo}<span>${tresAnos(v) ? 'Garantia legal de 3 anos' : 'Garantia de 18 meses, por acordo escrito'}</span></li>
             <li>${ic.conta}<span>Quilometragem certificada</span></li>
             ${v.aceita_retoma && !vendida ? `<li>${ic.troca}<span>Aceitamos o teu carro na troca</span></li>` : ''}
           </ul>
@@ -901,7 +943,7 @@ function paginaViatura(v) {
 
         ${v.descricao ? `<section class="bloco">
           <h2 class="h-bloco">Sobre esta viatura</h2>
-          <p class="bloco__texto">${esc(v.descricao)}</p>
+          ${paragrafos(v.descricao)}
         </section>` : ''}
 
         ${v.equipamento?.length ? `<section class="bloco">
@@ -1040,7 +1082,7 @@ function paginaSobre() {
     <ul class="numeros" role="list">
       <li><b>${def.empresa.desde}</b><span>no mercado desde</span></li>
       <li><b>${disponiveis.length}</b><span>viaturas em stock agora</span></li>
-      <li><b>3 anos</b><span>de garantia legal em todas</span></li>
+      ${TODAS_TRES ? '<li><b>3 anos</b><span>de garantia legal em todas</span></li>' : ''}
     </ul>
   </div>
 </section>
@@ -1050,7 +1092,7 @@ function paginaSobre() {
     <ul class="valores" role="list">
       <li>${ic.conta}<h2>Quilometragem certificada</h2><p>Os quilómetros de cada viatura são verificados antes de ela entrar no stand.</p></li>
       <li>${ic.documento}<h2>Transparência</h2><p>Preço final à vista, ficha completa e o estado de cada carro explicado antes da compra.</p></li>
-      <li>${ic.escudo}<h2>Garantia legal de 3 anos</h2><p>A garantia de conformidade do Decreto-Lei n.º 84/2021, em todas as viaturas usadas que vendemos.</p></li>
+      <li>${ic.escudo}<h2>${garantiaGeral()}</h2><p>A garantia de conformidade do Decreto-Lei n.º 84/2021, em todas as viaturas usadas que vendemos${TODAS_TRES ? '' : ' (3 anos, ou 18 meses quando assim acordado por escrito antes da compra)'}.</p></li>
     </ul>
   </div>
 </section>
@@ -1076,7 +1118,7 @@ ${existsSync(join(RAIZ, 'assets/img/vendidos')) ? `<section class="secao secao--
   return pagina({
     pag: 'sobre/',
     titulo: 'Sobre nós | NewAuto, Paços de Brandão',
-    descricao: `A NewAuto é um stand de automóveis usados em Paços de Brandão, no mercado desde ${def.empresa.desde}. Quilometragem certificada e garantia legal de 3 anos.`,
+    descricao: `A NewAuto é um stand de automóveis usados em Paços de Brandão, no mercado desde ${def.empresa.desde}. Quilometragem certificada e ${garantiaGeral(false)}.`,
     corpo,
     jsonld: [negocioLD, migalhasLD([{ nome: 'Início', href: '' }, { nome: 'Sobre nós' }])],
   });
@@ -1093,7 +1135,7 @@ function mapa() {
     <p><b>Mapa do Google</b><br>Fica por carregar até o autorizar, porque vem dos servidores do Google e pode instalar cookies.</p>
     <div class="mapa__botoes">
       <button class="btn btn--primario" type="button" id="btn-mapa">Carregar o mapa</button>
-      <a class="btn btn--secundario" href="${esc(def.local.mapa)}" target="_blank" rel="noopener">Abrir no Google Maps</a>
+      <a class="btn btn--secundario" href="${esc(MAPA)}" target="_blank" rel="noopener">Abrir no Google Maps</a>
     </div>
   </div>
 </div>`;
@@ -1122,10 +1164,10 @@ function paginaContactos() {
     <div class="contactos__lista">
       <ul class="contactos__linhas" role="list">
         ${linha(ic.tel, 'Telefone', esc(def.contactos.telefone_texto), TEL, NOTA_CHAMADA)}
-        ${linha(ic.zap, 'WhatsApp', esc(def.contactos.whatsapp_texto), wa(MSG_GERAL), `WhatsApp ${NOTA_CHAMADA}`, true)}
-        ${def.contactos.whatsapp_2 ? linha(ic.zap, 'WhatsApp', esc(def.contactos.whatsapp_2_texto), wa(MSG_GERAL, def.contactos.whatsapp_2), `WhatsApp ${NOTA_CHAMADA}`, true) : ''}
+        ${linha(ic.zap, 'WhatsApp', esc(def.contactos.whatsapp_texto), wa(MSG_GERAL), `WhatsApp ${NOTA_ZAP}`, true)}
+        ${def.contactos.whatsapp_2 ? linha(ic.zap, 'WhatsApp', esc(def.contactos.whatsapp_2_texto), wa(MSG_GERAL, def.contactos.whatsapp_2), `WhatsApp ${NOTA_ZAP}`, true) : ''}
         ${def.contactos.email ? linha(ic.mail, 'Email', esc(def.contactos.email), `mailto:${def.contactos.email}`) : ''}
-        ${linha(ic.pin, 'Morada', `${esc(def.local.morada)}, ${esc(def.local.codigo_postal)} ${esc(def.local.localidade)}`, def.local.mapa, 'Abrir no Google Maps', true)}
+        ${linha(ic.pin, 'Morada', `${esc(def.local.morada)}, ${esc(def.local.codigo_postal)} ${esc(def.local.localidade)}`, MAPA, 'Abrir no Google Maps', true)}
       </ul>
       <div class="contactos__horario">
         <h2 class="h-bloco">${ic.relogio}Horário</h2>
@@ -1133,8 +1175,7 @@ function paginaContactos() {
       </div>
       <div class="contactos__redes">
         <span>Segue-nos</span>
-        <a href="${esc(def.redes.instagram)}" target="_blank" rel="noopener" aria-label="Instagram da NewAuto">${ic.ig}</a>
-        <a href="${esc(def.redes.facebook)}" target="_blank" rel="noopener" aria-label="Facebook da NewAuto">${ic.fb}</a>
+        ${REDES.map((r) => `<a href="${esc(r.url)}" target="_blank" rel="noopener" aria-label="${r.nome} da NewAuto">${r.k === 'instagram' ? ic.ig : ic.fb}</a>`).join('')}
       </div>
     </div>
     <div class="contactos__mapa">${mapa()}</div>
@@ -1179,8 +1220,40 @@ function marcarDown(md) {
   return html;
 }
 
+/* OS DADOS DA EMPRESA NOS TEXTOS LEGAIS vêm dos dados do stand, por
+   marcadores ({{telefone}}): mudar o telefone no painel muda-o também nos
+   Termos, na Privacidade e na Garantia. Um marcador desconhecido pára o
+   gerador — os marcadores são nossos, e um erro de escrita não pode ir para o
+   site como «{{telfone}}». */
+const porIndicar = (v) => (typeof v === 'string' && v.trim() ? v.trim() : '(por indicar)');
+const MARCADORES = {
+  empresa: () => def.empresa.nome_completo,
+  nome: () => def.empresa.nome,
+  nif: () => (nifValido(String(def.empresa.nif ?? '')) ? String(def.empresa.nif) : '(por indicar)'),
+  email: () => porIndicar(def.contactos.email),
+  telefone: () => def.contactos.telefone_texto,
+  nota_chamada: () => NOTA_CHAMADA,
+  morada: () => `${def.local.morada}, ${def.local.codigo_postal} ${def.local.localidade}`,
+  concelho: () => def.local.concelho,
+  /* Numa sociedade, o Código das Sociedades Comerciais (art. 171.º) pede a
+     forma, o capital social e a matrícula no sítio da Internet: os que
+     estiverem preenchidos nos dados da empresa juntam-se à lista, cada um na
+     sua linha (o marcador fica no fim da linha do NIF). */
+  sociedade: () => [
+    ['Forma jurídica', def.empresa.forma_juridica],
+    ['Capital social', def.empresa.capital_social],
+    ['Matrícula', [def.empresa.conservatoria, def.empresa.matricula ? `n.º ${def.empresa.matricula}` : ''].filter((x) => typeof x === 'string' && x.trim()).join(', ')],
+  ].filter(([, x]) => typeof x === 'string' && x.trim()).map(([k, x]) => `\n- **${k}:** ${x.trim()}`).join(''),
+};
+function comMarcadores(md, ficheiro) {
+  return md.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (_, k) => {
+    if (!Object.hasOwn(MARCADORES, k)) throw new Error(`conteudo/${ficheiro}: marcador desconhecido {{${k}}}`);
+    return String(MARCADORES[k]() ?? '');
+  });
+}
+
 function lerTexto(ficheiro) {
-  const bruto = readFileSync(join(RAIZ, 'conteudo', ficheiro), 'utf8');
+  const bruto = comMarcadores(readFileSync(join(RAIZ, 'conteudo', ficheiro), 'utf8'), ficheiro);
   const m = bruto.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   const meta = {};
   m[1].split('\n').forEach((l) => {

@@ -26,7 +26,7 @@ Correr:  python3 scripts/imagens.py              (só o que falta)
          python3 scripts/imagens.py --galeria    (as do backoffice)
 """
 import json
-import shutil
+import re
 import sys
 from pathlib import Path
 
@@ -60,6 +60,8 @@ QUADROS = [
 GALERIA = [480, 960, 1600]
 OG = (1200, 630)
 TUDO = '--tudo' in sys.argv
+# O que este script faz nas pastas das viaturas de exemplo (e só isso apaga).
+FEITO_AQUI = re.compile(r'^(?:\d{2}-(?:207|414|828)\.(?:webp|jpg)|og\.jpg)$')
 
 
 def carregar(caminho: Path) -> Image.Image:
@@ -99,11 +101,20 @@ def cartao_partilha(im: Image.Image, saida: Path):
 def demonstracao():
     fichas = [json.loads(f.read_text(encoding='utf-8')) for f in sorted(VIATURAS.glob('*.json'))]
     vivas = {v['slug'] for v in fichas if v.get('fotos_origem')}
+    todas = {v['slug'] for v in fichas}
 
-    # Pastas de viaturas que já não existem: ficavam a ser publicadas para nada.
+    # As fotografias de exemplo de viaturas que já não as usam (o dono pôs as
+    # verdadeiras, ou apagou a viatura): ficavam a ser publicadas para nada.
+    # Só os ficheiros que este script faz; uma pasta fica se tiver mais alguma
+    # coisa (as fotografias carregadas no painel).
     for p in DESTINO.iterdir():
-        if p.is_dir() and p.name != '_v' and p.name not in vivas:
-            shutil.rmtree(p)
+        if not p.is_dir() or p.name == '_v' or p.name in vivas:
+            continue
+        for resto in p.iterdir():
+            if resto.is_file() and FEITO_AQUI.match(resto.name):
+                resto.unlink()
+        if not any(p.iterdir()) and p.name not in todas:
+            p.rmdir()
             print(f'  removida {p.name}/')
 
     total = 0
@@ -127,9 +138,11 @@ def demonstracao():
             esperados.add(f'{base}-414.jpg')
             if i == 1:
                 cartao_partilha(im, pasta / 'og.jpg')
-        # Restos de uma versão anterior (AVIF, outras larguras, outra ordem).
+        # Restos de uma versão anterior (AVIF, outras larguras, outra ordem). Só
+        # os que o próprio script faz: as fotografias que o painel carrega para a
+        # mesma pasta (assets/viaturas/<slug>/<slug>-<hex>.jpg) nunca se tocam.
         for resto in pasta.iterdir():
-            if resto.name not in esperados:
+            if resto.is_file() and resto.name not in esperados and FEITO_AQUI.match(resto.name):
                 resto.unlink()
         print(f'  {v["slug"]}: {len(v["fotos_origem"])} fotografias')
     pasta = RAIZ / 'assets' / 'img' / 'vendidos'
@@ -148,20 +161,29 @@ def galeria():
     for jf in sorted(VIATURAS.glob('*.json')):
         v = json.loads(jf.read_text(encoding='utf-8'))
         for caminho in v.get('galeria') or []:
-            rel = str(caminho).lstrip('/')
+            rel = str(caminho).strip().lstrip('/')
             if rel.startswith('NewAuto/'):
                 rel = rel[len('NewAuto/'):]
-            f = RAIZ / rel
+            f = (RAIZ / rel).resolve()
+            if DESTINO.resolve() not in f.parents or VARIANTES.resolve() in f.parents:
+                print(f'  !! {v["slug"]}: {rel} não é da biblioteca')
+                continue
             if not f.exists():
                 print(f'  !! {v["slug"]}: falta {rel}')
                 continue
+            # A variante leva a pasta da fotografia (assets/viaturas/bmw/x.jpg →
+            # _v/bmw/x-960.webp): duas viaturas com uma «foto-1.jpg» cada tinham a
+            # mesma. O gerador faz a mesma conta (raizDaVariante).
+            sub = f.relative_to(DESTINO).with_suffix('') if DESTINO in f.parents else Path(f.stem)
+            raiz = VARIANTES / sub
+            raiz.parent.mkdir(parents=True, exist_ok=True)
             im = carregar(f)
             for w in GALERIA:
                 if w > im.width and w != GALERIA[0]:
                     continue   # não se amplia o que veio do telemóvel
-                total += guardar(largura(im, min(w, im.width)), VARIANTES / f'{f.stem}-{w}.webp', 'WEBP')
-            total += guardar(largura(im, min(960, im.width)), VARIANTES / f'{f.stem}-960.jpg', 'JPEG')
-            cartao_partilha(im, VARIANTES / f'{f.stem}-og.jpg')
+                total += guardar(largura(im, min(w, im.width)), Path(f'{raiz}-{w}.webp'), 'WEBP')
+            total += guardar(largura(im, min(960, im.width)), Path(f'{raiz}-960.jpg'), 'JPEG')
+            cartao_partilha(im, Path(f'{raiz}-og.jpg'))
     print(f'galeria: {total} ficheiros novos em {VARIANTES.relative_to(RAIZ)}/')
 
 

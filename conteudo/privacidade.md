@@ -9,9 +9,9 @@ _Última actualização: 13 de agosto de 2026_
 
 ## Quem trata os seus dados
 
-O responsável pelo tratamento é a **NewAuto — Comércio Automóvel**, com estabelecimento em Largo Igreja 133, 4535-335 Paços de Brandão.
+O responsável pelo tratamento é a **{{empresa}}**, com estabelecimento em {{morada}}.
 
-Pode contactar-nos pelo telefone **917 849 998** (Chamada para a rede móvel nacional).
+Pode contactar-nos pelo telefone **{{telefone}}** {{nota_chamada}}.
 
 Não temos encarregado de protecção de dados, por não estarmos abrangidos por essa obrigação.
 

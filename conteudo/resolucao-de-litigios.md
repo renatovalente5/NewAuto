@@ -9,7 +9,7 @@ _Última actualização: 13 de agosto de 2026_
 
 ## Fale connosco primeiro
 
-Quase tudo se resolve com um telefonema. Ligue **917 849 998** (Chamada para a rede móvel nacional) e explique o que se passa.
+Quase tudo se resolve com um telefonema. Ligue **{{telefone}}** {{nota_chamada}} e explique o que se passa.
 
 ## Livro de Reclamações
 

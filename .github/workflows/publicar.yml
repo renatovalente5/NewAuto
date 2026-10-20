@@ -46,6 +46,16 @@ jobs:
           python3 -m pip install --quiet --disable-pip-version-check pillow
           python3 scripts/imagens.py --galeria
 
+      # A GUARDA DOS DADOS: as regras de .github/regras.mjs, as mesmas que o
+      # painel confere ao gravar. Pára SÓ no que partiria o site inteiro (a
+      # estrutura dos dados do stand, os telefones); uma viatura com um problema
+      # fica escondida na cópia que o gerador lê, e as outras publicam-se. O
+      # resumo da corrida diz o quê.
+      - name: Guarda dos dados
+        run: node .github/guardas.mjs
+      - name: A cópia dos dados que o gerador lê
+        run: node .github/guardas.mjs --neutralizar .
+
       # O gerador não tem dependências: não há `npm ci` porque não há
       # package.json. O CNAME, quando existir, decide sozinho se o site é
       # construído para a raiz de um domínio ou para o endereço de projecto.

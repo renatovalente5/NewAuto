@@ -40,6 +40,6 @@ O estado de cada viatura é mostrado e explicado antes da compra. Uma viatura us
 
 ## Se alguma coisa correr mal
 
-Ligue-nos primeiro: **917 849 998** (Chamada para a rede móvel nacional). Quase tudo se resolve com um telefonema e uma marcação.
+Ligue-nos primeiro: **{{telefone}}** {{nota_chamada}}. Quase tudo se resolve com um telefonema e uma marcação.
 
 Se preferir formalizar, tem à disposição o [Livro de Reclamações electrónico](https://www.livroreclamacoes.pt/inicio) e as vias descritas na página de [resolução de litígios](../resolucao-de-litigios/).

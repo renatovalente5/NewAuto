@@ -10,6 +10,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { nifValido } from '../.github/regras.mjs';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SAIDA = process.env.SAIDA ? resolve(process.env.SAIDA) : join(RAIZ, '_site');
@@ -133,7 +134,8 @@ for (const f of paginas) {
         procura um número velho deixa de encontrar seja o que for e passa
         sempre, calada. */
   const nums = (h.match(RE_TELEFONE) || []).length;
-  const notas = (h.match(/\(Chamada para a rede móvel nacional\)/g) || []).length;
+  /* A nota é a da rede do número: um fixo diz «rede fixa». */
+  const notas = (h.match(/\(Chamada para a rede (?:móvel|fixa) nacional\)/g) || []).length;
   if (nums && !notas) mal(n, 'mostra o telefone sem a nota do custo da chamada');
 
   /* 9. JSON-LD válido, e nada de Product/Car sem preço visível */
@@ -214,19 +216,24 @@ for (const f of paginas) {
     ['denominação social', DEF.empresa.nome_completo],
     ['endereço', l.morada],
     ['código postal', l.codigo_postal],
-    ['NIF', DEF.empresa.nif],
+    /* Sem um NIF que confira (o placeholder, ou vazio), a página diz «(por
+       indicar)», como o gerador; as regras lembram-no ao dono no painel. */
+    ['NIF', nifValido(String(DEF.empresa.nif ?? '').trim()) ? String(DEF.empresa.nif).trim() : '(por indicar)'],
   ]) {
     if (!termos.includes(pedaco)) mal('/termos/index.html', `a identificação do prestador não indica a ${o} (DL 7/2004 art. 10.º)`);
   }
   if (!/correio electr[óo]nico/i.test(termos)) mal('/termos/index.html', 'a identificação do prestador não indica o correio electrónico (DL 7/2004 art. 10.º)');
 }
 
-/* 12. dados das viaturas: os sete campos do DL 74/93, e sem repetições */
+/* 12. dados das viaturas: os sete campos do DL 74/93, e sem repetições.
+       Uma viatura escondida (um rascunho do painel, ou uma que a guarda
+       escondeu na cópia publicada) não está no site: não se confere. */
 {
   const vistos = new Map();
   for (const f of readdirSync(join(RAIZ, 'data/viaturas')).filter((x) => x.endsWith('.json'))) {
     const v = JSON.parse(readFileSync(join(RAIZ, 'data/viaturas', f), 'utf8'));
-    if (`${v.slug}.json` !== f) mal(`data/viaturas/${f}`, `o slug diz "${v.slug}" e o ficheiro chama-se outra coisa`);
+    if (v.oculta) continue;
+    if (v.slug !== undefined && `${v.slug}.json` !== f) aviso(`data/viaturas/${f}`, `o campo slug diz "${v.slug}"; o endereço é o nome do ficheiro`);
     for (const c of ['matricula', 'preco', 'ano_construcao', 'mes_matricula', 'ano_matricula',
       'registos_anteriores', 'garantia_usado', 'garantia_fabrica']) {
       if (v[c] === undefined || v[c] === '' || v[c] === null) {
