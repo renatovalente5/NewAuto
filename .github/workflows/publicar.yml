@@ -33,6 +33,19 @@ jobs:
         with:
           node-version: 20
 
+      # As fotografias que o dono do stand carrega no backoffice chegam do
+      # telemóvel com 3 a 4 MB. Este passo tira delas versões de 480, 960 e
+      # 1600 px para `assets/viaturas/_v/`, que não vão para o git. Se falhar,
+      # o site publica-se na mesma e serve os originais.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Versões leves das fotografias do backoffice
+        continue-on-error: true
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check pillow
+          python3 scripts/imagens.py --galeria
+
       # O gerador não tem dependências: não há `npm ci` porque não há
       # package.json. O CNAME, quando existir, decide sozinho se o site é
       # construído para a raiz de um domínio ou para o endereço de projecto.

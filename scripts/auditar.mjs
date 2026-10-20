@@ -65,8 +65,13 @@ for (const f of paginas) {
   }
 
   /* 2. ligações e recursos internos apontam para ficheiros que existem */
-  const refs = [...h.matchAll(/(?:href|src|srcset)="([^"]+)"/g)].flatMap(([, v]) =>
-    v.includes(' ') && v.includes(',') ? v.split(',').map((s) => s.trim().split(/\s+/)[0]) : [v]);
+  /* Um srcset é uma lista de «endereço largura», separada por vírgulas — e pode
+     ter uma entrada só. A primeira versão só o partia quando havia vírgula, e
+     um srcset de uma entrada passava inteiro, largura incluída, como caminho. */
+  const refs = [
+    ...[...h.matchAll(/(?:href|src)="([^"]+)"/g)].map(([, v]) => v),
+    ...[...h.matchAll(/srcset="([^"]+)"/g)].flatMap(([, v]) => v.split(',').map((s) => s.trim().split(/\s+/)[0])),
+  ];
   for (const r of refs) {
     if (/^(https?:|mailto:|tel:|#|data:)/.test(r)) continue;
     const semQuery = r.split('?')[0].split('#')[0];
@@ -137,7 +142,12 @@ for (const f of paginas) {
     try { dados = JSON.parse(bruto); } catch (e) { mal(n, `JSON-LD inválido: ${e.message}`); continue; }
     for (const item of [dados].flat()) {
       if (!['Product', 'Car', 'Vehicle'].includes(item['@type'])) continue;
-      if (!item.offers) { mal(n, `${item['@type']} sem offers`); continue; }
+      /* Numa viatura vendida o preço deixa de estar à vista, e por isso o `Car`
+         vai sem `offers` — marcar um preço que não se vê é proibido. */
+      if (!item.offers) {
+        if (!/class="[^"]*pagina-ficha--vendida/.test(h)) mal(n, `${item['@type']} sem offers`);
+        continue;
+      }
       const preco = item.offers.price;
       if (!preco) { mal(n, `${item['@type']} com offers sem preço`); continue; }
       /* Marcar um preço que não está visível na página é expressamente
@@ -148,7 +158,9 @@ for (const f of paginas) {
          falhava sempre com preços acima de mil. */
       const normalizar = (x) => String(x).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
       const visivel = normalizar(h);
-      const formatado = normalizar(new Intl.NumberFormat('pt-PT').format(preco));
+      /* As mesmas opções do gerador: sem `useGrouping: 'always'`, 8900 € escrevia-se
+         «8900» e a página mostra «8 900». */
+      const formatado = normalizar(new Intl.NumberFormat('pt-PT', { useGrouping: 'always' }).format(preco));
       if (!visivel.includes(formatado)) {
         mal(n, `${item['@type']} marca o preço ${formatado} que não aparece visível na página`);
       }
@@ -168,6 +180,16 @@ for (const f of paginas) {
      01-01-2022 e o que o site disser vincula o vendedor (DL 84/2021 art. 43.º). */
   if (/garantia\s+(de\s+)?12\s*meses/i.test(h)) {
     mal(n, 'menciona «garantia de 12 meses» — revogada pelo DL 84/2021, a garantia legal é de 3 anos');
+  }
+  /* Financiamento: enquanto não se confirmar o registo como intermediário de
+     crédito no Banco de Portugal (DL 81-C/2017), o site não o menciona — e uma
+     mensalidade ou uma TAEG obrigariam ao exemplo representativo completo do
+     DL 133/2009. A versão anterior do «Sobre nós» falava em «financiamento»
+     sem ninguém dar por isso. */
+  {
+    const visivel = h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ');
+    const achado = visivel.match(/financiament|financiar|mensalidade|\bTAEG\b|presta[çc][õo]es de/i);
+    if (achado) mal(n, `menciona «${achado[0]}» — o financiamento não aparece no site enquanto não se confirmar o registo no Banco de Portugal`);
   }
   /* A plataforma ODR europeia foi revogada a 20-07-2025 pelo Regulamento (UE)
      2024/3228; ligar para lá é mandar o consumidor a um sítio que já não existe.
@@ -214,11 +236,17 @@ for (const f of paginas) {
     if (v.estado === 'vendida' && !v.data_venda) mal(`data/viaturas/${f}`, 'vendida sem data_venda');
     if (vistos.has(v.titulo)) aviso(`data/viaturas/${f}`, `título repetido com ${vistos.get(v.titulo)}`);
     else vistos.set(v.titulo, v.slug);
-    for (const foto of v.fotos_origem) {
+    /* As viaturas criadas no backoffice não têm `fotos_origem` — têm `galeria`. */
+    for (const foto of v.fotos_origem || []) {
       if (!existsSync(join(RAIZ, '_fonte/originais', foto))) {
         mal(`data/viaturas/${f}`, `a fotografia de origem ${foto} não existe`);
       }
     }
+    for (const foto of v.galeria || []) {
+      const rel = String(foto).trim().replace(/^\/+/, '').replace(/^NewAuto\//, '');
+      if (!existsSync(join(RAIZ, rel))) mal(`data/viaturas/${f}`, `a fotografia ${foto} não existe`);
+    }
+    if (!(v.galeria?.length || v.fotos_origem?.length)) mal(`data/viaturas/${f}`, 'não tem nenhuma fotografia');
   }
 }
 
@@ -331,6 +359,23 @@ for (const p of noMapa) if (!noDisco.includes(p)) mal('sitemap.xml', `${p} não 
       const m = decodeURIComponent(val);
       if (!comStock.has(m)) mal('/index.html', `a secção das marcas mostra "${m}", que não tem viaturas disponíveis — o filtro seria ignorado e a montra mostrava tudo`);
     }
+  }
+}
+
+/* 14b. a folha de estilo tem endereços seus
+
+   O prefixo do site não lhes chega: uma `url()` que comece por `/` resolve para a
+   raiz do github.io e dá 404 — foi assim que outro site esteve dias com a letra
+   do sistema e ninguém viu, porque em localhost o prefixo é vazio. Aqui todas as
+   `url()` têm de ser relativas e apontar para um ficheiro que existe. E uma folha
+   sem `url()` nenhuma também é suspeita: a letra deixou de ser declarada. */
+{
+  const folha = readFileSync(join(SAIDA, 'assets/css/estilo.css'), 'utf8');
+  const urls = [...folha.matchAll(/url\((['"]?)([^'")]+)\1\)/g)].map(([, , v]) => v).filter((v) => !v.startsWith('data:'));
+  if (!urls.some((v) => v.endsWith('.woff2'))) mal('/assets/css/estilo.css', 'não declara a letra da marca (nenhum .woff2)');
+  for (const v of new Set(urls)) {
+    if (v.startsWith('/') || /^https?:/.test(v)) { mal('/assets/css/estilo.css', `url(${v}) não é relativa — partia com o prefixo do site`); continue; }
+    if (!existsSync(resolve(join(SAIDA, 'assets/css'), v))) mal('/assets/css/estilo.css', `url(${v}) aponta para um ficheiro que não existe`);
   }
 }
 

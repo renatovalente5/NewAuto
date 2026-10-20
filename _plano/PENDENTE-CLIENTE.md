@@ -80,23 +80,31 @@ isto.
 
 ## Os dados das viaturas são de demonstração
 
-As **12 viaturas** que estão no site são exemplos, como combinámos. Não são
-inventadas do nada: **a marca, o modelo e a cor de cada uma saem dos carros que
-estão mesmo nas 205 fotografias** que me deu, classificadas uma a uma.
+As **13 viaturas** do site (10 em stock, 3 vendidas) são exemplos, como
+combinámos — mas **cada uma é um carro verdadeiro do stand**. As fotografias que
+me deu vieram dos posts do Instagram e do Facebook, e o nome de cada ficheiro
+traz o número da publicação: agrupadas por post, dão os carros que já venderam,
+cada um com o seu exterior e o seu interior. O modelo, a geração, a cor e a
+caixa de cada ficha batem com o que as fotografias mostram.
+
+Ficaram de fora as fotografias com pessoas (a autorização que os clientes deram
+para o Instagram não cobre o site), os emblemas de outras marcas e os
+conta-quilómetros legíveis.
 
 O que é inventado e tem de ser corrigido no backoffice:
 
 | Campo | Estado |
 |---|---|
-| Matrícula | inventada, formato válido |
+| Matrícula | inventada, formato válido (todas com «NA») |
 | Preço | plausível para o mercado, não real |
 | Quilómetros | inventados |
-| Mês e ano da matrícula | inventados |
+| Mês e ano da matrícula | inventados, coerentes com a geração do carro |
 | Registos anteriores | inventados |
-| Descrição | escrita por mim |
+| Equipamento | o que se vê nas fotografias, mais o habitual da versão |
+| Descrição | escrita por mim, a partir das fotografias |
 
-Cada viatura tem um campo **«Dados de demonstração»** marcado. Desmarque-o
-depois de conferir a viatura — serve para saber o que já foi revisto.
+Cada viatura tem o campo **«Dados de demonstração»** marcado. Desmarque-o depois
+de conferir a viatura — serve para saber o que já foi revisto.
 
 **O site está com `noindex` enquanto não houver domínio próprio**, precisamente
 para que estes dados não sejam apanhados pelo Google. Isso desaparece
@@ -107,19 +115,18 @@ automaticamente quando o CNAME for escrito.
 ## As fotografias
 
 As 205 que me deu têm **414×414 px** — foram recolhidas das redes sociais e não
-há maiores. Isto condicionou o desenho do site inteiro:
+há maiores. O site foi desenhado para isso: os cartões nunca as mostram maiores
+do que são, e a galeria usa uma ampliação feita com cuidado (828 px). No
+computador vêem-se bem; num telemóvel de ecrã muito nítido, a fotografia grande
+da ficha nota-se um pouco mole.
 
-- servem para cartões e galerias até cerca de 400 px de lado;
-- **não** dão para uma capa de largura total, onde apareceriam moles;
-- a capa é construída com tipografia e com a textura de setas da marca.
+**As fotografias que carregar no backoffice, tiradas com o telemóvel, ficam
+nítidas em todo o lado.** O site faz sozinho as versões leves (480, 960 e
+1600 px) a cada publicação. Para a capa de cada viatura, o ideal é um três
+quartos da frente, com o carro inteiro e bem centrado.
 
-Além disso, **86 das 205 são de interior e só 48 mostram carros inteiros** — não
-há como agrupar por viatura, porque os ficheiros não trazem essa informação.
-
-**Se me enviar as fotografias originais** (do telemóvel ou da máquina, sem passar
-pelas redes sociais), o site melhora muito: dá para capas de largura total e
-para galerias com pormenor a sério. É a única coisa que me falta que mudaria o
-aspecto do site de forma visível.
+**Se me enviar as fotografias originais** dos carros de exemplo (do telemóvel,
+sem passar pelas redes sociais), troco-as e o site fica nítido também nesses.
 
 ---
 
@@ -130,10 +137,8 @@ ficheiro `CNAME` na raiz do repositório, constrói para a raiz desse domínio; 
 não existir, constrói para o endereço de projecto do GitHub Pages e fica com
 `noindex`.
 
-Ao escrever o `CNAME`, há **uma coisa a mudar à mão**: no `.pages.yml`, o campo
-`media.output` passa de `/NewAuto/assets/viaturas` para `/assets/viaturas`.
-Está comentado no ficheiro. Sem isso, as fotografias que carregar no backoffice
-ficam com o caminho errado.
+Já não há nada a mudar à mão no backoffice quando o domínio chegar: as
+fotografias ficam gravadas sem o prefixo do site, e é o gerador que lho junta.
 
 ---
 

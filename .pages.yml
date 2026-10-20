@@ -11,10 +11,12 @@
 #    campos que não estejam declarados aqui em baixo. É a armadilha número um
 #    deste produto e já custou dados noutro projecto.
 #
-# 2. `media.output`. Diz o caminho que fica gravado nos ficheiros de conteúdo.
-#    Tem de acompanhar o prefixo com que o site é construído: enquanto não
-#    houver domínio próprio o site vive em /NewAuto/, e é isso que está aqui.
-#    **Ao escrever o ficheiro CNAME, mudar `output` para `/assets/viaturas`.**
+# 2. `media.output` igual ao `input`, sem barra e sem o prefixo do site. O
+#    caminho gravado na viatura fica `assets/viaturas/foto.jpg`, e é o gerador
+#    que lhe junta o prefixo — com ou sem domínio próprio, nada a mudar aqui.
+#    (Com barra inicial, o Pages CMS gravava os caminhos noutra forma e
+#    reescrevia a lista de fotografias a cada gravação. O gerador aceita as
+#    formas antigas, para nada partir.)
 #
 # Notas de operação para o cliente:
 #   - JPEG, não HEIC. O iPhone deve estar em «Definições → Câmara → Formatos →
@@ -25,9 +27,8 @@
 
 media:
   input: assets/viaturas
-  output: /NewAuto/assets/viaturas
-  extensions: [jpg, jpeg, png, webp, avif]
-  categories: [image]
+  output: assets/viaturas
+  extensions: [jpg, jpeg, png, webp]
 
 content:
   - name: viaturas
@@ -241,13 +242,20 @@ content:
           media: viaturas
           multiple: true
           extensions: [jpg, jpeg, png, webp]
-        description: 'A primeira é a que aparece nos cartões e nas partilhas. Mínimo 6, ideal 10 a 15. JPEG, não HEIC. Máximo 3 MB cada.'
+        description: 'A primeira é a que aparece nos cartões e nas partilhas — de preferência três quartos da frente. Ideal 12 a 20: exterior, interior, bagageira, pormenores. JPEG, não HEIC. Máximo 3 MB cada. O site faz sozinho as versões leves para o telemóvel.'
+
+      # ------------------------------------------------------------ equipamento
+      - name: equipamento
+        label: Equipamento
+        type: string
+        list: true
+        description: 'Um item por linha, curto. Ex.: «Navegação», «Sensores de estacionamento», «7 lugares». Aparece na ficha com um visto.'
 
       # -------------------------------------------------------------- descrição
       - name: descricao
         label: Descrição
         type: text
-        description: 'Não repita aqui quilómetros, ano nem potência — esses aparecem automaticamente. Escreva o que a ficha técnica não diz: estado, equipamento, história.'
+        description: 'Uma ou duas frases. Não repita quilómetros, ano nem potência — esses aparecem automaticamente. Escreva o que a ficha não diz: estado, história, o que tem de especial.'
 
       # Escrito pelo gerador; fica visível para se saber o que ainda é de exemplo.
       - name: demonstracao

@@ -41,4 +41,4 @@ As fotografias, os textos e a marca deste sítio são da NewAuto.
 
 ## Reclamações
 
-Ver a [página de contactos](../contactos/#litigios) e o [Livro de Reclamações electrónico](https://www.livroreclamacoes.pt/inicio). A entidade competente para apreciar a reclamação é a **ASAE — Autoridade de Segurança Alimentar e Económica**.
+Ver a página de [resolução de litígios](../resolucao-de-litigios/) e o [Livro de Reclamações electrónico](https://www.livroreclamacoes.pt/inicio). A entidade competente para apreciar a reclamação é a **ASAE — Autoridade de Segurança Alimentar e Económica**.
