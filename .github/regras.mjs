@@ -377,8 +377,9 @@ export function horarioDaSemana(semana) {
   });
   const nomeGrupo = (g) => (g.ini === g.fim ? NOMES_DIAS[g.ini] : g.fim === g.ini + 1 ? `${NOMES_DIAS[g.ini]} e ${NOMES_DIAS[g.fim]}` : `${NOMES_DIAS[g.ini]} a ${NOMES_DIAS[g.fim]}`);
   const horasDe = (d) => (d.modo === 'aberto' ? `${d.abre} – ${d.fecha}` : d.modo === 'marcacao' ? 'Por marcação' : 'Fechado');
-  const visiveis = grupos.filter((g) => g.d.modo !== 'fechado' || grupos.length <= 3);
-  const linhas = visiveis.map((g) => ({ dias: nomeGrupo(g), horas: horasDe(g.d) }));
+  /* Os dias fechados também se dizem («Sábado — Fechado»): a falta de uma
+     linha não diz a um cliente que o stand está fechado. */
+  const linhas = grupos.map((g) => ({ dias: nomeGrupo(g), horas: horasDe(g.d) }));
   const estruturado = grupos.filter((g) => g.d.modo === 'aberto')
     .map((g) => ({ dias: DIAS_DA_SEMANA.slice(g.ini, g.fim + 1), abre: g.d.abre, fecha: g.d.fecha }));
   const texto = linhas.map((l) => `${l.dias} ${l.horas.replace(' – ', '–')}`).join(' · ');
