@@ -457,8 +457,12 @@ export function problemasDaViatura(v, { nome, existe = null, hoje = null } = {})
   const anoSeguinte = Number(String(hoje || new Date().toISOString()).slice(0, 4)) + 1;
   const escondida = v.oculta === true;
   const vendida = v.estado === 'vendida';
-  /* Numa escondida, o que falta para ir para o site é só um lembrete. */
-  const falta = (regra, campo, mensagem) => (escondida ? lembra(regra, campo, mensagem) : neutraliza(regra, 'esconder', campo, mensagem));
+  /* Numa escondida, o que falta para ir para o site é só um lembrete — COM
+     OUTRA CHAVE (…:rascunho). Uma chave tem sempre a mesma classe: com a
+     mesma, o rascunho gravado sem fotografias e depois posto no site trazia
+     o «sem-fotos» do HEAD (lembrete) para a gravação (neutraliza), e o
+     Worker não o via como novo — a viatura ia escondida para o CI, calada. */
+  const falta = (regra, campo, mensagem) => (escondida ? lembra(`${regra}:rascunho`, campo, mensagem) : neutraliza(regra, 'esconder', campo, mensagem));
 
   // --- o que o site precisa ----------------------------------------------
   for (const [campo, artigo] of [['marca', 'a'], ['modelo', 'o']]) {
