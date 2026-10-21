@@ -1,11 +1,11 @@
 ---
 titulo: Cookies
-descricao: Este sítio não instala cookies. O que isso quer dizer, e a única excepção — o mapa da página de contactos.
+descricao: Este sítio não instala cookies. O que isso quer dizer, e a única excepção — o mapa do Google.
 ---
 
 # Cookies
 
-_Última actualização: 13 de agosto de 2026_
+_Última actualização: 21 de outubro de 2026_
 
 ## Este sítio não instala cookies
 
@@ -21,7 +21,7 @@ A sua escolha fica guardada no *armazenamento local* do seu próprio navegador, 
 
 ## A excepção: o mapa
 
-Na página de contactos há um mapa fornecido pelo Google. **Só é carregado depois de o autorizar**: enquanto não carregar no botão, nada é pedido ao Google e nenhum cookie é instalado.
+Na página inicial e na de contactos há um mapa fornecido pelo Google. **Só é carregado depois de o autorizar**: enquanto não carregar no botão, nada é pedido ao Google e nenhum cookie é instalado.
 
 Isto não é cortesia — é o que o artigo 5.º da **Lei n.º 41/2004** exige. O consentimento para armazenar ou aceder a informação no equipamento do utilizador tem de ser **prévio**.
 

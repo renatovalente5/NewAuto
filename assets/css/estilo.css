@@ -124,8 +124,31 @@ svg { flex: none; }
 }
 .saltar:focus { left: 1rem; }
 
+/* A TRANSIÇÃO ENTRE PÁGINAS (quem não a tem navega como sempre). A fotografia
+   do carro em que se carrega voa do cartão até à galeria da ficha, e no
+   «voltar» regressa ao cartão. O nome `foto-viatura` está na galeria; nos
+   cartões põe-no o transicao.js, só no que se carregou — dois elementos com
+   o mesmo nome e o browser desiste da transição inteira. O cabeçalho tem nome
+   próprio para ficar quieto; a página que sai apaga-se depressa (sem as duas
+   se sobreporem, que dava um cinzento sujo entre o carvão e o claro), a que
+   entra sobe um pouco, e o painel da ficha chega pela direita, logo atrás da
+   fotografia. Uma curva que trava no fim: arranca rápido e pousa devagar. */
 @view-transition { navigation: auto; }
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
+.topo { view-transition-name: topo; }
+.galeria__palco { view-transition-name: foto-viatura; }
+.ficha .painel { view-transition-name: painel; }
+::view-transition-group(foto-viatura) { animation-duration: .6s; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+::view-transition-old(foto-viatura), ::view-transition-new(foto-viatura) { height: 100%; object-fit: cover; }
+::view-transition-old(root), ::view-transition-old(painel):only-child, ::view-transition-old(foto-viatura):only-child {
+  animation: vt-sai .2s cubic-bezier(.4, 0, 1, 1) both;
+}
+::view-transition-new(root), ::view-transition-new(foto-viatura):only-child {
+  animation: vt-entra .5s .1s cubic-bezier(.22, 1, .36, 1) both;
+}
+::view-transition-new(painel):only-child { animation: vt-da-direita .55s .14s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes vt-sai { to { opacity: 0; } }
+@keyframes vt-entra { from { opacity: 0; transform: translateY(16px); } }
+@keyframes vt-da-direita { from { opacity: 0; transform: translateX(32px); } }
 @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
 
 /* ------------------------------------------------------------ tipografia */
@@ -348,6 +371,8 @@ svg { flex: none; }
 
 /* ---------------------------------------------------------------- cartões */
 .grelha { display: grid; gap: clamp(.7rem, 1.8vw, 1.4rem); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mais { display: flex; justify-content: center; margin-top: clamp(1.5rem, 3.2vw, 2.4rem); }
+@media (max-width: 599px) { .mais .btn { width: 100%; } }
 @media (min-width: 720px) { .grelha { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 1100px) { .grelha { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (min-width: 1100px) { .grelha--montra { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -487,8 +512,19 @@ svg { flex: none; }
 
 /* ------------------------------------------------------------- visita */
 .secao--visita { background: var(--branco); }
-.visita { display: grid; gap: 2rem; align-items: start; }
-@media (min-width: 900px) { .visita { grid-template-columns: 1fr minmax(0, 27rem); gap: 4rem; align-items: center; } }
+/* A morada e o horário, e o mapa (o dos contactos, que só carrega depois de
+   autorizado). No telemóvel o mapa fica entre o «onde» e o «quando»; no
+   computador ocupa a coluna da direita, da altura das duas caixas. */
+.visita { display: grid; gap: 2rem; align-items: start; grid-template-areas: "texto" "mapa" "horario"; }
+.visita__texto { grid-area: texto; }
+.visita__horario { grid-area: horario; }
+.visita__mapa { grid-area: mapa; display: grid; }
+.visita__mapa .mapa { min-height: 360px; }
+@media (min-width: 900px) {
+  .visita { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); grid-template-areas: "texto mapa" "horario mapa"; gap: 2.25rem 3.5rem; }
+  .visita__mapa { align-self: stretch; }
+  .visita__mapa .mapa { min-height: 440px; }
+}
 .visita__morada { display: flex; gap: .7rem; margin-top: 1.1rem; font-size: 1.12rem; line-height: 1.45; }
 .visita__morada svg { width: 22px; height: 22px; margin-top: .2rem; color: var(--vermelho-tinta); }
 .visita__accoes { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.6rem; }

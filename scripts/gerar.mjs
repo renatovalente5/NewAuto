@@ -149,6 +149,13 @@ function medidas(caminho) {
   return null;
 }
 const LOGO = medidas(join(RAIZ, 'assets/img/logo-claro.png'));
+/* A fotografia que voa do cartão para a ficha: em linha no <head>, porque o
+   `pagereveal` tem de estar à escuta antes da primeira pintura (ver o próprio
+   assets/js/transicao.js). */
+/* Sem os comentários de bloco que começam uma linha (as explicações ficam no
+   ficheiro; em linha iam em todas as páginas). */
+const TRANSICAO = readFileSync(join(RAIZ, 'assets/js/transicao.js'), 'utf8').replace(/^[ \t]*\/\*[\s\S]*?\*\/[ \t]*\n/gm, '').trim();
+if (/<\/script/i.test(TRANSICAO)) throw new Error('assets/js/transicao.js não pode ter «</script»: vai em linha no <head>');
 
 /* ------------------------------------------------------------------ ícones */
 /* Traço de 1,75 em 24 px, pontas redondas. Um só desenho para o site todo. */
@@ -376,7 +383,7 @@ function rodape() {
    visual: um consentimento em que recusar custa mais do que aceitar não é livre. */
 function avisoCookies() {
   return `<div class="cookies" id="cookies" hidden>
-  <p><b>Não usamos cookies.</b> Só o mapa do Google, na página de contactos, precisa da sua autorização. <a href="${u('cookies/')}">Saber mais</a></p>
+  <p><b>Não usamos cookies.</b> Só o mapa do Google precisa da sua autorização. <a href="${u('cookies/')}">Saber mais</a></p>
   <div class="cookies__botoes">
     <button class="btn btn--secundario" type="button" data-cookies="recusar">Recusar</button>
     <button class="btn btn--secundario" type="button" data-cookies="aceitar">Aceitar</button>
@@ -414,6 +421,7 @@ function pagina({ pag = '', titulo, descricao, corpo, jsonld = [], og, classe = 
 <script>document.documentElement.classList.add('js')</script>
 <link rel="preload" href="${u('assets/fonts/saira.woff2')}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${versao('assets/css/estilo.css')}">
+<script>${TRANSICAO}</script>
 ${naoIndexar ? '<meta name="robots" content="noindex">' : ''}${dominio ? '' : '<!-- Enquanto o stand não tiver domínio, o site vive num endereço\n     provisório do GitHub. Deixá-lo indexar punha o Google a guardar o\n     endereço errado. Escrever o ficheiro CNAME faz esta linha desaparecer. -->\n<meta name="robots" content="noindex, nofollow">'}
 <script type="speculationrules">{"prerender":[{"where":{"href_matches":"${BASE}/viaturas/*"},"eagerness":"moderate"}]}</script>
 ${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, '\\u003c')}</script>`).join('\n')}
@@ -492,7 +500,7 @@ function cartao(v, i = 9, nivel = 3) {
   data-combustivel="${esc(v.combustivel)}" data-caixa="${esc(v.caixa)}" data-segmento="${esc(v.segmento)}"
   data-preco="${v.preco}" data-km="${v.quilometros}" data-ano="${v.ano_matricula}" data-ordem="${v.ordem ?? 999}">
   <a class="cartao__link" href="${u(`viaturas/${v.slug}/`)}">
-    <div class="cartao__foto" style="view-transition-name: v-${esc(v.referencia)}">
+    <div class="cartao__foto">
       ${foto(v, 1, { uso: 'cartao', sizes: '(max-width: 599px) 46vw, (max-width: 1099px) 31vw, 300px', prioritaria: i < 2, alt: '' })}
       ${selo(v)}
       ${nFotos(v) > 1 ? `<span class="cartao__fotos">${ic.camara}${nFotos(v)}</span>` : ''}
@@ -649,6 +657,7 @@ function paginaInicial() {
       <a class="ligacao" href="${u('viaturas/')}">Ver todas e filtrar ${ic.seta}</a>
     </div>
     <div class="grelha">${lista.map((v, i) => cartao(v, i)).join('')}</div>
+    ${verMais(lista.length)}
   </div>
 </section>
 
@@ -684,6 +693,7 @@ ${existsSync(join(RAIZ, 'assets/img/vendidos')) ? `<section class="secao secao--
       <h3 class="h-bloco">${ic.relogio}Horário</h3>
       ${horario()}
     </div>
+    <div class="visita__mapa">${mapa()}</div>
   </div>
 </section>`;
 
@@ -855,6 +865,14 @@ const FICHA = [
 ];
 
 /* As semelhantes: o mesmo tipo de carro primeiro, e depois o preço mais perto. */
+/* «VER MAIS» NO FIM DE UMA LISTA DE CARROS. O link do cabeçalho fica lá em
+   cima; quem chega ao fim da grelha tem o passo seguinte à mão. Só aparece
+   quando há mesmo mais viaturas do que as que a lista mostra. */
+function verMais(mostradas) {
+  if (disponiveis.length <= mostradas) return '';
+  return `<p class="mais"><a class="btn btn--secundario btn--g" href="${u('viaturas/')}">Ver mais viaturas ${ic.seta}</a></p>`;
+}
+
 function semelhantes(v, n = 4) {
   return disponiveis.filter((x) => x.slug !== v.slug)
     .map((x) => [x, (x.segmento === v.segmento ? 0 : 1) * 1e6 + Math.abs(x.preco - v.preco)])
@@ -899,7 +917,7 @@ function paginaViatura(v) {
     <div class="ficha">
       <div class="ficha__galeria">
         <div class="galeria" id="galeria">
-          <div class="galeria__palco" style="view-transition-name: v-${esc(v.referencia)}">
+          <div class="galeria__palco">
             <ul class="galeria__pista" id="galeria-pista" role="list" tabindex="0" aria-label="Fotografias da viatura">${slides}</ul>
             ${selo(v)}
             ${total > 1 ? `<button class="galeria__nav galeria__nav--ant" type="button" data-passo="-1" aria-label="Fotografia anterior">${ic.esq}</button>
@@ -970,6 +988,7 @@ function paginaViatura(v) {
         <a class="ligacao" href="${u('viaturas/')}">Ver todas ${ic.seta}</a>
       </div>
       <div class="grelha">${semelhantes(v).map((x, k) => cartao(x, k + 9, 3)).join('')}</div>
+      ${verMais(semelhantes(v).length)}
     </section>
   </div>
 </section>`;
@@ -1129,7 +1148,7 @@ ${existsSync(join(RAIZ, 'assets/img/vendidos')) ? `<section class="secao secao--
    (artigo 5.º da Lei 41/2004). */
 function mapa() {
   const q = encodeURIComponent(`${def.local.morada}, ${def.local.codigo_postal} ${def.local.localidade}, Portugal`);
-  return `<div class="mapa" id="mapa" data-mapa="https://www.google.com/maps?q=${q}&z=16&output=embed">
+  return `<div class="mapa" id="mapa" data-mapa="https://www.google.com/maps?q=${q}&z=16&hl=pt-PT&output=embed">
   <div class="mapa__aviso" id="mapa-aviso">
     <span class="mapa__pino">${ic.pin}</span>
     <p><b>Mapa do Google</b><br>Fica por carregar até o autorizar, porque vem dos servidores do Google e pode instalar cookies.</p>
