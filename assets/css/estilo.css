@@ -845,6 +845,9 @@ svg { flex: none; }
 .mapa { position: relative; overflow: hidden; min-height: 460px; border-radius: var(--raio-g); background: var(--carvao); color: var(--claro); display: grid; place-items: center; }
 @media (min-width: 1024px) { .contactos__mapa { position: sticky; top: calc(var(--h-topo-p) + 1.25rem); } .mapa { min-height: 620px; } }
 .mapa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+/* Com o mapa carregado, o fundo carvão do aviso espreitava nos cantos arredondados. */
+.mapa:has(> iframe) { background: #E5E3DF; }
+.mapa:has(> iframe)::before { display: none; }
 .mapa__aviso { max-width: 25rem; padding: 2rem; text-align: center; }
 .mapa__pino { width: 64px; height: 64px; margin: 0 auto 1.1rem; display: grid; place-items: center; border-radius: 50%; background: var(--vermelho-accao); color: #fff; }
 .mapa__pino svg { width: 30px; height: 30px; }
