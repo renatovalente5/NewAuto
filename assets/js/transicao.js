@@ -43,6 +43,10 @@
     por(foto);
     const c = foto.closest('.cartao');
     if (c) { c.style.setProperty('content-visibility', 'visible'); postos.push([c, 'content-visibility']); }
+    /* O contador de fotografias é do cartão: na galeria não existe, e ia
+       ficar a pairar por cima dela até ao fim do voo. */
+    const n = foto.querySelector('.cartao__fotos');
+    if (n) { n.style.setProperty('visibility', 'hidden'); postos.push([n, 'visibility']); }
   };
 
   const fotoDoCartao = (slug) => {

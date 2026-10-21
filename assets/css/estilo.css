@@ -139,6 +139,12 @@ svg { flex: none; }
 .ficha .painel { view-transition-name: painel; }
 ::view-transition-group(foto-viatura) { animation-duration: .6s; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
 ::view-transition-old(foto-viatura), ::view-transition-new(foto-viatura) { height: 100%; object-fit: cover; }
+/* A fotografia de partida voa POR CIMA, inteira, e só cede à de chegada no
+   fim. Cruzadas desde o início, as duas (desalinhadas pelo zoom do cartão ao
+   passar o rato, e a de chegada às vezes ainda a carregar) davam uma
+   fotografia desbotada a meio do voo. */
+::view-transition-old(foto-viatura) { z-index: 1; animation: vt-cede .6s linear both; }
+::view-transition-new(foto-viatura) { animation: none; }
 ::view-transition-old(root), ::view-transition-old(painel):only-child, ::view-transition-old(foto-viatura):only-child {
   animation: vt-sai .2s cubic-bezier(.4, 0, 1, 1) both;
 }
@@ -147,6 +153,7 @@ svg { flex: none; }
 }
 ::view-transition-new(painel):only-child { animation: vt-da-direita .55s .14s cubic-bezier(.22, 1, .36, 1) both; }
 @keyframes vt-sai { to { opacity: 0; } }
+@keyframes vt-cede { 0%, 45% { opacity: 1; } 85%, 100% { opacity: 0; } }
 @keyframes vt-entra { from { opacity: 0; transform: translateY(16px); } }
 @keyframes vt-da-direita { from { opacity: 0; transform: translateX(32px); } }
 @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
