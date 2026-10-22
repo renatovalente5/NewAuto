@@ -19,6 +19,15 @@ import { createHash } from 'node:crypto';
    telefone, a nota do custo da chamada, um endereço que se pode pôr num link,
    o título de uma viatura e o endereço da página. */
 import { notaDaChamada, NOTAS_DA_CHAMADA, urlHttps, tituloDe, slugDoFicheiro, semPrefixo, BIBLIOTECA, GARANTIAS_USADO, nifValido } from '../.github/regras.mjs';
+/* AS PEÇAS LEGAIS COMUNS AOS SITES DO RENATO (legal-comum, instalada em
+   ./legal-comum pelo instalar.mjs da biblioteca — não se edita aqui): o botão
+   do Livro de Reclamações e a lista de quem recebe dados, para a política de
+   privacidade. Vieram com o grupo 1 da auditoria legal de out 2026. */
+import { VERSAO as VERSAO_LEGAL, livroReclamacoes, livroCss, destinatariosHtml, frasesPrivacidade } from '../legal-comum/index.mjs';
+
+/* Cada peça da biblioteca sai entre marcadores, como o CLI dela faz: é por eles
+   que o verificar-versoes.mjs vê que versão está no ar. */
+const legal = (peca, html) => `<!-- legal-comum:${peca} v${VERSAO_LEGAL} -->${html}<!-- /legal-comum:${peca} -->`;
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 /* A pasta de saída é configurável para o build de produção poder ser verificado
@@ -74,6 +83,14 @@ const viaturas = readdirSync(join(RAIZ, 'data/viaturas'))
   .sort((a, b) => (a.ordem ?? 999) - (b.ordem ?? 999));
 
 const disponiveis = viaturas.filter((v) => v.estado !== 'vendida');
+
+/* OS DADOS DE EXEMPLO DIZEM-SE (auditoria legal de out 2026). As viaturas de
+   demonstração têm preço, quilómetros e datas inventados: enquanto houver uma
+   no site, todas as páginas abrem com a faixa, e as matrículas são «XX-00-XX»
+   (uma inventada com formato válido podia ser a do carro de outra pessoa). O
+   travão (scripts/auditar.mjs) não deixa publicar assim num domínio (CNAME). */
+const DEMONSTRACAO = viaturas.some((v) => v.demonstracao === true);
+const AVISO_DEMO = DEMONSTRACAO ? '<p class="aviso-demo" role="note">Site em construção — viaturas e dados de exemplo</p>' : '';
 
 /* A GARANTIA QUE O SITE PROMETE. O que o site diz vincula o stand (DL 84/2021,
    art. 43.º): «3 anos em todas» só se todas as à venda têm a garantia legal
@@ -306,6 +323,9 @@ function cabecalho(pag) {
     <div class="topo__accoes">
       ${zapBtn(MSG_GERAL, 'btn btn--fantasma topo__zap')}
       <a class="btn btn--primario topo__ligar" href="${TEL}" aria-label="Ligar para o stand">${ic.tel}<span>Ligar</span></a>
+      <!-- O «Ligar» não mostra o número, e a nota do custo da chamada tem de
+           estar junto de cada botão que liga (DL 59/2021, art. 3.º). -->
+      <small class="topo__nota">${NOTA_CHAMADA}</small>
       <button class="hamburger" id="btn-menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu"><span></span></button>
     </div>
   </div>
@@ -372,13 +392,29 @@ function rodape() {
       <p>&copy; ${new Date().getFullYear()} ${esc(def.empresa.nome)}</p>
       <ul>
         ${legais.map(([h, r]) => `<li><a href="${u(h)}">${r}</a></li>`).join('')}
-        <li><a class="rodape__livro" href="https://www.livroreclamacoes.pt/inicio" target="_blank" rel="noopener">${ic.documento}Livro de Reclamações</a></li>
+        <!-- Retirar a autorização do mapa tem de ser tão fácil como dá-la: este
+             botão volta a abrir o aviso, em qualquer página (site.js, bloco 10). -->
+        <li><button class="rodape__preferencias" type="button" data-cookies-abrir>Preferências de cookies</button></li>
+        <!-- O Livro de Reclamações (legal-comum, variante discreta): a lei pede-o
+             «em local visível e de forma destacada» na página de entrada (DL
+             156/2005, art. 5.º-B) — o ícone do livro marca-o entre as ligações
+             legais, com a mesma letra e a mesma cor delas, e nada o tapa. -->
+        <li>${LIVRO_RODAPE}</li>
         <li><a class="rodape__gestao" href="https://app.pagescms.org/${DONO}/${REPO}" target="_blank" rel="nofollow noopener">Gestão</a></li>
       </ul>
     </div>
   </div>
 </footer>`;
 }
+
+/* O Livro de Reclamações, da biblioteca legal-comum, na variante DISCRETA (a
+   que o Renato escolheu, 22 out 2026): o ícone pequeno de livro e o texto, com
+   a letra, o tamanho e a cor das outras ligações legais do rodapé — sem caixa,
+   sem fundo — e na mesma linha delas. Nunca mais pequeno nem mais apagado do
+   que as vizinhas. O CSS da biblioteca vai inline na cabeça de cada página. */
+const LIVRO_RODAPE = legal('livro', livroReclamacoes());
+const LIVRO_PAGINA = legal('livro', livroReclamacoes());
+const CSS_LIVRO = livroCss();
 
 /* O aviso foi pedido pelo cliente. Este site não instala cookies nenhum — a
    única coisa que pode carregar de terceiros é o mapa do Google, e só depois de
@@ -424,12 +460,14 @@ function pagina({ pag = '', titulo, descricao, corpo, jsonld = [], og, classe = 
 <script>document.documentElement.classList.add('js')</script>
 <link rel="preload" href="${u('assets/fonts/saira.woff2')}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${versao('assets/css/estilo.css')}">
+<style>${CSS_LIVRO}</style>
 <script>${TRANSICAO}</script>
 ${naoIndexar ? '<meta name="robots" content="noindex">' : ''}${dominio ? '' : '<!-- Enquanto o stand não tiver domínio, o site vive num endereço\n     provisório do GitHub. Deixá-lo indexar punha o Google a guardar o\n     endereço errado. Escrever o ficheiro CNAME faz esta linha desaparecer. -->\n<meta name="robots" content="noindex, nofollow">'}
 <script type="speculationrules">{"prerender":[{"where":{"href_matches":"${BASE}/viaturas/*"},"eagerness":"moderate"}]}</script>
 ${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, '\\u003c')}</script>`).join('\n')}
 </head>
 <body class="${classe}">
+${AVISO_DEMO}
 ${cabecalho(pag)}
 <main id="principal">
 ${corpo}
@@ -1000,6 +1038,9 @@ function paginaViatura(v) {
   <p class="barra-fixa__preco"><span>${esc(nome)}</span><b>${euros(v.preco)}&nbsp;&euro;</b></p>
   <a class="btn btn--secundario btn--icone" href="${TEL}" aria-label="Ligar para o stand">${ic.tel}</a>
   ${zapBtn(msg, 'btn btn--primario', 'WhatsApp')}
+  <!-- O botão de ligar só tem o ícone: o número e a nota do custo da chamada
+       por baixo (DL 59/2021, art. 3.º). -->
+  <p class="barra-fixa__nota">${esc(def.contactos.telefone_texto)} ${NOTA_CHAMADA}</p>
 </div>`}
 <dialog class="lightbox" id="lightbox" aria-label="Fotografias de ${esc(nome)}">
   <ul class="lightbox__pista" id="lightbox-pista" role="list"></ul>
@@ -1160,6 +1201,9 @@ function mapa() {
       <a class="btn btn--secundario" href="${esc(MAPA)}" target="_blank" rel="noopener">Abrir no Google Maps</a>
     </div>
   </div>
+  <!-- Retirar a autorização tem de ser tão fácil como dá-la (RGPD, art. 7.º,
+       n.º 3): só aparece com o mapa carregado, e tira-o na hora (site.js). -->
+  <button class="mapa__retirar" type="button" id="btn-mapa-retirar" hidden>Deixar de carregar o mapa</button>
 </div>`;
 }
 
@@ -1199,6 +1243,9 @@ function paginaContactos() {
         <span>Segue-nos</span>
         ${REDES.map((r) => `<a href="${esc(r.url)}" target="_blank" rel="noopener" aria-label="${r.nome} da NewAuto">${r.k === 'instagram' ? ic.ig : ic.fb}</a>`).join('')}
       </div>
+      <!-- O Livro de Reclamações também na página de contactos, como o manual
+           da DGC pede. -->
+      <div class="contactos__livro">${LIVRO_PAGINA}</div>
     </div>
     <div class="contactos__mapa">${mapa()}</div>
   </div>
@@ -1233,6 +1280,13 @@ function marcarDown(md) {
     }
     if (lista) { html += '</ul>'; lista = false; }
     if (!t) continue;
+    /* Uma linha «<!-- html:nome -->» é uma peça da biblioteca legal-comum que já
+       vem em HTML (a lista dos destinatários): entra tal e qual, sem escapar. */
+    const bloco = t.match(/^<!-- html:([a-z_]+) -->$/);
+    if (bloco) {
+      if (!Object.hasOwn(BLOCOS_HTML, bloco[1])) throw new Error(`bloco de HTML desconhecido: ${bloco[1]}`);
+      html += BLOCOS_HTML[bloco[1]](); continue;
+    }
     const h = t.match(/^(#{1,3})\s+(.*)$/);
     if (h) { const n = h[1].length; html += `<h${n}>${inline(h[2])}</h${n}>`; continue; }
     if (/^_.*_$/.test(t)) { html += `<p class="actualizado">${inline(t.slice(1, -1))}</p>`; continue; }
@@ -1248,6 +1302,20 @@ function marcarDown(md) {
    gerador — os marcadores são nossos, e um erro de escrita não pode ir para o
    site como «{{telfone}}». */
 const porIndicar = (v) => (typeof v === 'string' && v.trim() ? v.trim() : '(por indicar)');
+/* Quem recebe MESMO dados, para a política de privacidade (destinatariosHtml,
+   da biblioteca): o GitHub (alojamento), o Google (o mapa, só depois do clique)
+   e a Meta (o WhatsApp, por onde passam também os dois formulários, e as
+   páginas de Instagram e Facebook). Nada de analytics nem de pagamentos. */
+const PRIVACIDADE = {
+  alojamento: 'github-pages',
+  mapas: 'google',
+  whatsapp: true,
+  instagram: REDES.some((r) => r.k === 'instagram'),
+  facebookPage: REDES.some((r) => r.k === 'facebook'),
+};
+const BLOCOS_HTML = {
+  destinatarios: () => legal('privacidade', destinatariosHtml(PRIVACIDADE, { formato: 'lista' })),
+};
 const MARCADORES = {
   empresa: () => def.empresa.nome_completo,
   nome: () => def.empresa.nome,
@@ -1257,6 +1325,8 @@ const MARCADORES = {
   nota_chamada: () => NOTA_CHAMADA,
   morada: () => `${def.local.morada}, ${def.local.codigo_postal} ${def.local.localidade}`,
   concelho: () => def.local.concelho,
+  /* A co-responsabilidade com a Meta pelas estatísticas das páginas (legal-comum). */
+  privacidade_frases: () => frasesPrivacidade(PRIVACIDADE).join(' '),
   /* Numa sociedade, o Código das Sociedades Comerciais (art. 171.º) pede a
      forma, o capital social e a matrícula no sítio da Internet: os que
      estiverem preenchidos nos dados da empresa juntam-se à lista, cada um na
@@ -1320,7 +1390,7 @@ const RESUMO_GARANTIA = `<section class="secao secao--resumo">
       <ul class="garantia__pontos" role="list">
         <li><b>30 dias</b><span>para pedir a substituição ou desfazer a compra, se surgir uma falta de conformidade.</span></li>
         <li><b>Prazo parado</b><span>enquanto a viatura estiver connosco em reparação.</span></li>
-        <li><b>+6 meses</b><span>por cada reparação, até quatro, na peça reparada.</span></li>
+        <li><b>+6 meses</b><span>de garantia do bem reparado, por cada reparação, até quatro.</span></li>
       </ul>
     </div>
   </div>

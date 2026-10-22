@@ -5,7 +5,7 @@ descricao: Garantia legal de conformidade de 3 anos nas viaturas usadas vendidas
 
 # Garantia e pós-venda
 
-_Última actualização: 13 de agosto de 2026_
+_Última actualização: 22 de outubro de 2026_
 
 ## Garantia legal de conformidade: 3 anos
 
@@ -26,7 +26,7 @@ Alguns pontos que a lei fixa e que convém conhecer:
 
 - **Direito de rejeição nos primeiros 30 dias.** Se a falta de conformidade se manifestar neste prazo, pode pedir a resolução imediata do contrato ou a substituição.
 - **O prazo suspende-se durante a reparação**, e não corre enquanto a viatura estiver connosco.
-- **Cada reparação acrescenta 6 meses** ao prazo de garantia da peça reparada, até ao limite de quatro reparações.
+- **Cada reparação acrescenta 6 meses** ao prazo de garantia do bem reparado, até ao limite de quatro reparações.
 
 ## Assistência pós-venda
 

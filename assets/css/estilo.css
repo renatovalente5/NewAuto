@@ -298,6 +298,18 @@ html.vt-nitida::view-transition-old(foto-viatura) { animation: vt-sai .18s linea
   .topo__ligar { width: 46px; padding: 0; }
   .topo__ligar span { display: none; }
 }
+/* A nota do custo da chamada junto do «Ligar» (DL 59/2021, art. 3.º): duas
+   linhas pequenas ao lado do botão, na cor apagada do cabeçalho. */
+.topo__nota { max-width: 8.5em; font-size: .66rem; line-height: 1.25; color: var(--claro-3); }
+@media (max-width: 380px) { .topo__nota { max-width: 6.5em; font-size: .6rem; } }
+
+/* A faixa dos dados de exemplo, por cima de tudo, em todas as páginas, enquanto
+   houver uma viatura de demonstração no site (auditoria legal de out 2026). */
+.aviso-demo {
+  margin: 0; padding: .55rem var(--gutter); text-align: center;
+  background: #FFF4C2; color: #3D3200; font: 600 .86rem/1.35 var(--marca); font-stretch: 104%;
+  border-bottom: 1px solid #E6D27A;
+}
 
 .hamburger { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 12px; border: 1.5px solid rgb(255 255 255 / .26); }
 .hamburger span, .hamburger span::before, .hamburger span::after {
@@ -763,10 +775,14 @@ html.vt-nitida::view-transition-old(foto-viatura) { animation: vt-sai .18s linea
 .barra-fixa__preco { display: grid; margin-right: auto; min-width: 0; line-height: 1.15; }
 .barra-fixa__preco span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: .78rem; color: var(--tinta-2); }
 .barra-fixa__preco b { font: 700 1.25rem/1.1 var(--marca); font-variant-numeric: tabular-nums; }
+/* O número e a nota do custo da chamada, numa linha por baixo dos botões: o de
+   ligar só tem o ícone (DL 59/2021, art. 3.º). */
+.barra-fixa { flex-wrap: wrap; row-gap: .3rem; }
+.barra-fixa__nota { flex: 1 0 100%; margin: 0; text-align: center; font-size: .72rem; line-height: 1.3; color: var(--tinta-2); }
 @media (min-width: 1024px) { .barra-fixa { display: none; } }
 @media (max-width: 1023px) {
-  .pagina-ficha:not(.pagina-ficha--vendida) .rodape { padding-bottom: 80px; }
-  .pagina-ficha .cookies { bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .pagina-ficha:not(.pagina-ficha--vendida) .rodape { padding-bottom: 104px; }
+  .pagina-ficha .cookies { bottom: calc(108px + env(safe-area-inset-bottom)); }
 }
 
 /* Fotografia ampliada: o <dialog> já traz o fundo, o foco preso e o Esc. */
@@ -848,11 +864,21 @@ html.vt-nitida::view-transition-old(foto-viatura) { animation: vt-sai .18s linea
 .contactos__redes span { margin-right: .3rem; font-weight: 600; }
 .contactos__redes a { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: var(--branco); box-shadow: 0 0 0 1px var(--linha); color: var(--tinta); }
 .contactos__redes a:hover { box-shadow: 0 0 0 1.5px var(--tinta); }
+.contactos__livro { margin-top: 1.25rem; font-weight: 600; color: var(--tinta); }
 .contactos__redes svg { width: 20px; height: 20px; }
 
 .mapa { position: relative; overflow: hidden; min-height: 460px; border-radius: var(--raio-g); background: var(--carvao); color: var(--claro); display: grid; place-items: center; }
 @media (min-width: 1024px) { .contactos__mapa { position: sticky; top: calc(var(--h-topo-p) + 1.25rem); } .mapa { min-height: 620px; } }
 .mapa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: inherit; }
+/* «Deixar de carregar o mapa»: por cima do mapa carregado, no canto de cima à
+   direita — em baixo tapava a atribuição do Google, e à esquerda o «Abrir no Maps». */
+.mapa__retirar {
+  position: absolute; right: .75rem; top: .75rem; z-index: 2;
+  min-height: 44px; padding: .5rem .95rem; border: 1px solid var(--linha); border-radius: 999px;
+  background: var(--branco); color: var(--tinta); font: 600 .84rem/1.2 var(--marca); cursor: pointer;
+  box-shadow: 0 6px 18px -10px rgb(0 0 0 / .5);
+}
+.mapa__retirar:hover { border-color: var(--tinta); }
 /* Com o mapa carregado, o fundo carvão do aviso espreitava nos cantos arredondados (e o
    iframe leva a curva ele próprio: o recorte do pai nem sempre o apanhava). */
 .mapa:has(> iframe) { background: #E5E3DF; }
@@ -927,8 +953,14 @@ html.vt-nitida::view-transition-old(foto-viatura) { animation: vt-sai .18s linea
 .rodape__legal ul { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem 1.3rem; }
 .rodape__legal a { color: var(--claro-2); }
 .rodape__legal a:hover { color: #fff; }
-.rodape__livro { display: inline-flex; align-items: center; gap: .45rem; padding: .45rem .85rem; border-radius: 999px; border: 1px solid rgb(255 255 255 / .28); color: #fff !important; }
-.rodape__livro svg { width: 16px; height: 16px; }
+/* O Livro de Reclamações (legal-comum, .lr-discreto, com o CSS dele inline na
+   cabeça da página) é uma ligação como as vizinhas: o `.rodape__legal a` dá-lhe
+   a mesma cor, e a letra é herdada. Sem regra própria, de propósito. */
+/* «Preferências de cookies»: um botão com cara de ligação, como as do lado. */
+.rodape__preferencias {
+  padding: 0; border: 0; background: none; color: var(--claro-2); font: inherit; cursor: pointer;
+}
+.rodape__preferencias:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
 .rodape__gestao { color: #8F8F8F !important; }
 @media (max-width: 759px) {
   .rodape__marca img { width: 78px; }
@@ -936,7 +968,6 @@ html.vt-nitida::view-transition-old(foto-viatura) { animation: vt-sai .18s linea
 @media (max-width: 599px) {
   .rodape__legal { display: grid; }
   .rodape__legal ul { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem 1rem; }
-  .rodape__legal li:has(.rodape__livro) { grid-column: 1 / -1; }
 }
 
 /* ------------------------------------------------------------ cookies */
@@ -949,4 +980,10 @@ html.vt-nitida::view-transition-old(foto-viatura) { animation: vt-sai .18s linea
 .cookies b { color: #fff; }
 .cookies a { color: #fff; text-decoration: underline; text-underline-offset: 2px; }
 .cookies__botoes { display: flex; gap: .55rem; }
+/* Com o aviso aberto, a página acaba mais abaixo: no fim, o rodapé (e o botão
+   do Livro de Reclamações) fica por cima do aviso, não por baixo dele. */
+body.com-aviso .rodape { padding-bottom: calc(var(--aviso-altura, 0px) + 2rem); }
+@media (max-width: 1023px) {
+  body.com-aviso.pagina-ficha:not(.pagina-ficha--vendida) .rodape { padding-bottom: calc(var(--aviso-altura, 0px) + 124px); }
+}
 .cookies__botoes .btn { flex: 1; min-height: 42px; }

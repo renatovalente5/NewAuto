@@ -53,7 +53,7 @@ VIATURAS = [
          construcao=2019, mes='02', ano=2020, km=92_800, preco=22_900, registos=1,
          origem='Nacional', revisoes=True, combustivel='Gasóleo', caixa='Manual',
          cv=116, cc=1496, segmento='Utilitário', portas=5, lugares=5, cor='Preto Sapphire',
-         matricula='AA-12-NA', destaque=True,
+         matricula='XX-00-XX', destaque=True,
          equipamento=['Painel de instrumentos digital', 'Navegação', 'Ar condicionado automático',
                       'Sensores de estacionamento traseiros', 'Cruise control', 'Faróis LED'],
          descricao='A geração actual do Série 1, com o painel de instrumentos digital e o '
@@ -69,7 +69,7 @@ VIATURAS = [
          construcao=2018, mes='06', ano=2018, km=118_450, preco=15_900, registos=1,
          origem='Importado', revisoes=True, combustivel='Gasóleo', caixa='Manual',
          cv=130, cc=1499, segmento='Carrinha', portas=5, lugares=5, cor='Cinzento Hurricane',
-         matricula='18-NA-02', destaque=True,
+         matricula='XX-00-XX', destaque=True,
          equipamento=['i-Cockpit com ecrã táctil', 'Navegação', 'Climatização automática bizona',
                       'Sensores de estacionamento', 'Cruise control', 'Jantes de liga leve'],
          descricao='Carrinha com o i-Cockpit da Peugeot: volante pequeno, painel por cima '
@@ -85,7 +85,7 @@ VIATURAS = [
          construcao=2016, mes='04', ano=2016, km=148_700, preco=15_900, registos=2,
          origem='Importado', revisoes=True, combustivel='Gasóleo', caixa='Manual',
          cv=109, cc=1461, segmento='Utilitário', portas=5, lugares=5, cor='Prata Polar',
-         matricula='16-NA-03', destaque=True,
+         matricula='XX-00-XX', destaque=True,
          equipamento=['Ecrã multimédia', 'Bluetooth', 'Ar condicionado', 'Jantes de liga leve',
                       'Cruise control', 'Volante multifunções em pele'],
          descricao='Classe A da fase final da geração W176, com a grelha de pontos e as '
@@ -100,7 +100,7 @@ VIATURAS = [
          construcao=2017, mes='10', ano=2017, km=139_600, preco=15_400, registos=1,
          origem='Nacional', revisoes=True, combustivel='Gasóleo', caixa='Automática',
          cv=115, cc=1598, segmento='Carrinha', portas=5, lugares=5, cor='Cinzento Pirineus',
-         matricula='17-NA-04', destaque=True,
+         matricula='XX-00-XX', destaque=True,
          equipamento=['Caixa automática DSG de 7 velocidades', 'Ecrã táctil', 'Ar condicionado automático',
                       'Sensores de estacionamento', 'Volante multifunções', 'Jantes de liga leve'],
          descricao='Carrinha compacta com caixa automática de dupla embraiagem. '
@@ -114,7 +114,7 @@ VIATURAS = [
          construcao=2016, mes='05', ano=2016, km=98_600, preco=10_900, registos=1,
          origem='Nacional', revisoes=False, combustivel='Gasolina', caixa='Manual',
          cv=82, cc=1199, segmento='SUV/TT', portas=5, lugares=5, cor='Cinzento Shark',
-         matricula='16-NA-05', destaque=True,
+         matricula='XX-00-XX', destaque=True,
          equipamento=['Airbump laterais', 'Barras de tejadilho', 'Ecrã táctil de 7"', 'Navegação',
                       'Painel de instrumentos digital', 'Bluetooth'],
          descricao='O C4 Cactus original, com os Airbump nas portas e barras de tejadilho. '
@@ -130,7 +130,7 @@ VIATURAS = [
          construcao=2016, mes='09', ano=2016, km=172_900, preco=12_900, registos=2,
          origem='Importado', revisoes=True, combustivel='Gasóleo', caixa='Manual',
          cv=120, cc=1560, segmento='Carrinha', portas=5, lugares=5, cor='Azul Encre',
-         matricula='16-NA-06', destaque=True,
+         matricula='XX-00-XX', destaque=True,
          equipamento=['Tecto panorâmico', 'Navegação', 'Climatização automática',
                       'Sensores de estacionamento', 'Cruise control', 'Jantes de liga leve'],
          descricao='Carrinha grande de estrada, com tecto panorâmico em vidro. '
@@ -144,7 +144,7 @@ VIATURAS = [
          construcao=2016, mes='03', ano=2016, km=164_300, preco=11_900, registos=2,
          origem='Nacional', revisoes=True, combustivel='Gasóleo', caixa='Manual',
          cv=120, cc=1560, segmento='Carrinha', portas=5, lugares=5, cor='Cinzento Alumínio',
-         matricula='16-NA-07', destaque=False,
+         matricula='XX-00-XX', destaque=False,
          equipamento=['i-Cockpit com ecrã táctil', 'Ajuda ao estacionamento', 'Ar condicionado automático',
                       'Cruise control', 'Bluetooth', 'Jantes de liga leve'],
          descricao='A mesma carrinha 308 SW, numa versão anterior e mais em conta. '
@@ -160,7 +160,7 @@ VIATURAS = [
          construcao=2015, mes='11', ano=2015, km=176_300, preco=8_400, registos=2,
          origem='Importado', revisoes=False, combustivel='Gasóleo', caixa='Manual',
          cv=110, cc=1461, segmento='Carrinha', portas=5, lugares=5, cor='Cinzento Cassiopée',
-         matricula='15-NA-08', destaque=False, estado='reservada',
+         matricula='XX-00-XX', destaque=False, estado='reservada',
          equipamento=['Cartão mãos-livres', 'Navegação', 'Ar condicionado automático',
                       'Cruise control', 'Luzes diurnas LED', 'Jantes de liga leve'],
          descricao='Carrinha económica, com arranque por cartão mãos-livres e jantes pretas. '
@@ -174,7 +174,7 @@ VIATURAS = [
          construcao=2015, mes='07', ano=2015, km=151_200, preco=8_900, registos=1,
          origem='Nacional', revisoes=True, combustivel='Gasóleo', caixa='Manual',
          cv=110, cc=1598, segmento='Monovolume', portas=5, lugares=5, cor='Prata Sovereign',
-         matricula='15-NA-09', destaque=False,
+         matricula='XX-00-XX', destaque=False,
          equipamento=['Portas traseiras de abertura inversa', 'Navegação', 'Ar condicionado automático',
                       'Cruise control', 'Bluetooth', 'Jantes de liga leve'],
          descricao='Monovolume compacto com as portas traseiras de abertura ao contrário, '
@@ -188,7 +188,7 @@ VIATURAS = [
          construcao=2013, mes='06', ano=2013, km=189_500, preco=8_900, registos=2,
          origem='Importado', revisoes=False, combustivel='Gasóleo', caixa='Automática',
          cv=112, cc=1560, segmento='Monovolume', portas=5, lugares=7, cor='Azul claro metalizado',
-         matricula='13-NA-10', destaque=False,
+         matricula='XX-00-XX', destaque=False,
          equipamento=['7 lugares', 'Tecto panorâmico', 'Patilhas no volante', 'Sensores de estacionamento',
                       'Sensor de chuva e luz', 'Ar condicionado automático'],
          descricao='Monovolume de sete lugares com tecto panorâmico e caixa pilotada com '
@@ -203,7 +203,7 @@ VIATURAS = [
          construcao=2014, mes='02', ano=2014, km=142_000, preco=6_900, registos=2,
          origem='Nacional', revisoes=False, combustivel='Gasóleo', caixa='Manual',
          cv=85, cc=1248, segmento='Utilitário', portas=3, lugares=4, cor='Vermelho Alfa',
-         matricula='14-NA-11', destaque=False, estado='vendida', data_venda='2026-07-18',
+         matricula='XX-00-XX', destaque=False, estado='vendida', data_venda='2026-07-18',
          equipamento=['Jantes de liga leve pretas', 'Ar condicionado', 'Bluetooth'],
          descricao='Três portas, vermelho Alfa e jantes pretas.',
          fotos=fotos('702251121_122287200254191273_2017775736867040156')),
@@ -211,7 +211,7 @@ VIATURAS = [
          construcao=2011, mes='05', ano=2011, km=231_000, preco=9_900, registos=3,
          origem='Importado', revisoes=False, combustivel='Gasóleo', caixa='Manual',
          cv=184, cc=1995, segmento='Berlina', portas=4, lugares=5, cor='Preto Sapphire',
-         matricula='11-NA-12', destaque=False, estado='vendida', data_venda='2026-06-27',
+         matricula='XX-00-XX', destaque=False, estado='vendida', data_venda='2026-06-27',
          equipamento=['Jantes de liga leve', 'Climatização automática', 'Cruise control'],
          descricao='Berlina Série 3 da geração E90, em preto.',
          fotos=fotos('703455936_122287199762191273_8178850013525665846')),
@@ -219,7 +219,7 @@ VIATURAS = [
          construcao=2012, mes='03', ano=2012, km=198_000, preco=7_500, registos=2,
          origem='Importado', revisoes=False, combustivel='Gasóleo', caixa='Manual',
          cv=150, cc=1995, segmento='Monovolume', portas=5, lugares=7, cor='Verde claro metalizado',
-         matricula='12-NA-13', destaque=False, estado='vendida', data_venda='2026-05-29',
+         matricula='XX-00-XX', destaque=False, estado='vendida', data_venda='2026-05-29',
          equipamento=['7 lugares', 'Ar condicionado automático', 'Cartão mãos-livres'],
          descricao='Monovolume de sete lugares da última fase do Espace IV.',
          fotos=fotos('703763072_122287200008191273_8447009756817268429')),

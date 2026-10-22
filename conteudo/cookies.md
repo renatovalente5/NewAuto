@@ -5,7 +5,7 @@ descricao: Este sítio não instala cookies. O que isso quer dizer, e a única e
 
 # Cookies
 
-_Última actualização: 21 de outubro de 2026_
+_Última actualização: 22 de outubro de 2026_
 
 ## Este sítio não instala cookies
 
@@ -27,8 +27,10 @@ Isto não é cortesia — é o que o artigo 5.º da **Lei n.º 41/2004** exige. 
 
 Se autorizar o mapa, aplicam-se as políticas do Google, que pode consultar em [policies.google.com/privacy](https://policies.google.com/privacy). Essa autorização fica guardada com a chave `na:mapa`, do mesmo modo.
 
-## Como apagar
+## Mudar de ideias
 
-Ambas as chaves ficam no seu equipamento até as apagar. Limpar os dados de navegação do site, nas definições do navegador, remove-as e volta tudo ao princípio.
+**Retirar a autorização é tão fácil como dá-la.** Com o mapa carregado, aparece sobre ele o botão **«Deixar de carregar o mapa»**; e no fim de cada página há **«Preferências de cookies»**, que volta a mostrar o aviso. Nos dois casos o mapa sai na hora e a autorização é apagada.
+
+As chaves ficam no seu equipamento até as apagar. Limpar os dados de navegação do site, nas definições do navegador, também as remove.
 
 Para saber que dados tratamos quando nos contacta, veja a [Política de privacidade](../privacidade/).

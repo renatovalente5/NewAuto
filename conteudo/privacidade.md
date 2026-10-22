@@ -5,21 +5,27 @@ descricao: Que dados a NewAuto trata quando o contacta, com que fundamento, dura
 
 # Política de privacidade
 
-_Última actualização: 13 de agosto de 2026_
+_Última actualização: 22 de outubro de 2026_
 
 ## Quem trata os seus dados
 
-O responsável pelo tratamento é a **{{empresa}}**, com estabelecimento em {{morada}}.
+O responsável pelo tratamento é a **{{empresa}}**, NIF {{nif}}, com estabelecimento em {{morada}}.
 
-Pode contactar-nos pelo telefone **{{telefone}}** {{nota_chamada}}.
+Pode contactar-nos pelo telefone **{{telefone}}** {{nota_chamada}} ou pelo correio electrónico {{email}}.
 
 Não temos encarregado de protecção de dados, por não estarmos abrangidos por essa obrigação.
 
-## Este sítio não recolhe dados de quem o visita
+## Quando visita o sítio
 
-Este sítio é uma montra e **não tem formulários**. Não usa análise de tráfego, não tem publicidade, não integra redes sociais e não carrega tipos de letra nem outros recursos de terceiros. Navegar por aqui não deixa dados connosco.
+Não usamos análise de tráfego, não temos publicidade, não integramos redes sociais e não carregamos tipos de letra nem outros recursos de terceiros. Navegar por aqui não deixa dados connosco.
 
-**Não instalamos cookies.** Ver a página [Cookies](../cookies/).
+**Não instalamos cookies.** A única excepção é o **mapa do Google**, na página inicial e na de contactos: só carrega se o autorizar e, nesse caso, o Google (Google Ireland Ltd.) recebe o seu endereço IP e pode gravar cookies no seu aparelho. Pode retirar a autorização quando quiser, em «Deixar de carregar o mapa» ou em «Preferências de cookies», no fim de cada página. Ver a página [Cookies](../cookies/).
+
+## Os dois formulários da página inicial
+
+«Tens um carro para dar na troca?» (marca, modelo, ano e quilómetros) e «Não encontras o que procuras?» (o carro e o orçamento) **não enviam nada para nós nem para nenhum servidor**: compõem uma mensagem e abrem o WhatsApp no seu aparelho. Só nos chega o que decidir enviar, e a conversa passa pelos servidores da Meta.
+
+Usamos esses dados só para lhe responder — com uma proposta de retoma ou com viaturas que procuremos para si. A base legal é a **execução de diligências pré-contratuais a seu pedido** (artigo 6.º, n.º 1, alínea b) do RGPD), e guardamo-los até 1 ano, se não derem origem a compra.
 
 ## Quando nos contacta
 
@@ -40,6 +46,12 @@ O **WhatsApp** é um serviço da Meta. Se optar por falar connosco por aí, a co
 ## A quem comunicamos
 
 Só a quem é necessário: contabilidade, conservatória do registo automóvel, seguradoras e instituições de crédito quando o cliente o solicita, e autoridades quando a lei obriga. Não vendemos nem cedemos dados para fins comerciais de terceiros.
+
+Além destes, há os serviços de que o sítio e os nossos canais dependem, e que por isso recebem dados. São estes, e só estes:
+
+<!-- html:destinatarios -->
+
+{{privacidade_frases}}
 
 ## Os seus direitos
 

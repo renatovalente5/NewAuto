@@ -95,7 +95,7 @@ O que é inventado e tem de ser corrigido no backoffice:
 
 | Campo | Estado |
 |---|---|
-| Matrícula | inventada, formato válido (todas com «NA») |
+| Matrícula | «XX-00-XX», claramente fictícia (era inventada com formato válido, e podia ser a de outro carro) |
 | Preço | plausível para o mercado, não real |
 | Quilómetros | inventados |
 | Mês e ano da matrícula | inventados, coerentes com a geração do carro |

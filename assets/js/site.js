@@ -507,6 +507,7 @@
   const mapa = $('#mapa');
   if (mapa) {
     const aviso = $('#mapa-aviso');
+    const retirar = $('#btn-mapa-retirar');
     carregarMapa = () => {
       if ($('iframe', mapa)) return;
       const f = document.createElement('iframe');
@@ -517,14 +518,19 @@
       f.allowFullscreen = true;
       mapa.appendChild(f);
       if (aviso) aviso.hidden = true;
+      if (retirar) retirar.hidden = false;
     };
     /* Retirar o consentimento tem de ser tão fácil como dá-lo (RGPD, art. 7.º
        n.º 3): o iframe sai mesmo, não basta escondê-lo. */
     descarregarMapa = () => {
       $('iframe', mapa)?.remove();
       if (aviso) aviso.hidden = false;
+      if (retirar) retirar.hidden = true;
     };
     $('#btn-mapa')?.addEventListener('click', () => { guardar(CHAVE_MAPA, '1'); carregarMapa(); });
+    /* «Deixar de carregar o mapa»: apaga a autorização e tira o iframe na hora;
+       o foco vai para o botão que o volta a carregar. */
+    retirar?.addEventListener('click', () => { esquecer(CHAVE_MAPA); descarregarMapa(); $('#btn-mapa')?.focus(); });
     if (lido(CHAVE_MAPA) === '1') carregarMapa();
   }
 
@@ -536,13 +542,27 @@
   const cookies = $('#cookies');
   if (cookies) {
     const CHAVE = 'na:aviso';
-    if (!lido(CHAVE)) setTimeout(() => { cookies.hidden = false; }, 700);
+    /* Enquanto o aviso está aberto, a página ganha por baixo a altura dele: no
+       fim da página, o aviso não pode tapar o botão do Livro de Reclamações
+       (nem nada do rodapé). */
+    const mostrar = (sim) => {
+      cookies.hidden = !sim;
+      document.body.classList.toggle('com-aviso', sim);
+      if (sim) document.body.style.setProperty('--aviso-altura', `${cookies.offsetHeight}px`);
+    };
+    if (!lido(CHAVE)) setTimeout(() => mostrar(true), 700);
     $$('[data-cookies]', cookies).forEach((b) => b.addEventListener('click', () => {
       const aceitou = b.dataset.cookies === 'aceitar';
       guardar(CHAVE, b.dataset.cookies);
       if (aceitou) { guardar(CHAVE_MAPA, '1'); carregarMapa?.(); }
       else { esquecer(CHAVE_MAPA); descarregarMapa?.(); }
-      cookies.hidden = true;
+      mostrar(false);
+    }));
+    /* «Preferências de cookies», no rodapé de cada página: volta a mostrar o
+       aviso, para quem aceitou poder recusar (e o contrário). */
+    $$('[data-cookies-abrir]').forEach((b) => b.addEventListener('click', () => {
+      mostrar(true);
+      $('[data-cookies]', cookies)?.focus();
     }));
   }
 

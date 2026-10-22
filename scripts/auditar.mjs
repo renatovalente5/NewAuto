@@ -11,6 +11,9 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { nifValido } from '../.github/regras.mjs';
+/* A guarda da identificação da biblioteca legal-comum (instalada em
+   ./legal-comum; não se edita aqui). */
+import { verificarIdentificacao } from '../legal-comum/index.mjs';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SAIDA = process.env.SAIDA ? resolve(process.env.SAIDA) : join(RAIZ, '_site');
@@ -204,6 +207,13 @@ for (const f of paginas) {
   }
 }
 
+/* COM DOMÍNIO OU EM PRÉ-VISUALIZAÇÃO. Com o CNAME, o site é o do stand, num
+   endereço público e indexado: o que abaixo «bloqueia com domínio» pára a
+   publicação. Sem ele, o site está no endereço provisório (noindex) e as
+   mesmas faltas só se avisam, para o ensaio continuar a publicar-se. */
+const COM_DOMINIO = existsSync(join(SAIDA, 'CNAME'));
+const bloqueiaComDominio = (f, m) => (COM_DOMINIO ? mal(f, m) : aviso(f, `${m} — bloqueia a publicação quando houver domínio (CNAME)`));
+
 /* 11b. A identificação do prestador saiu do rodapé a pedido do cliente e vive
         agora na página de Termos, ligada em todos os rodapés. O artigo 10.º do
         DL 7/2004 exige quatro elementos — denominação, endereço, NIF e correio
@@ -223,6 +233,51 @@ for (const f of paginas) {
     if (!termos.includes(pedaco)) mal('/termos/index.html', `a identificação do prestador não indica a ${o} (DL 7/2004 art. 10.º)`);
   }
   if (!/correio electr[óo]nico/i.test(termos)) mal('/termos/index.html', 'a identificação do prestador não indica o correio electrónico (DL 7/2004 art. 10.º)');
+
+  /* A GUARDA DA IDENTIFICAÇÃO (auditoria legal de out 2026): a de cima confere
+     que a página tem a secção; esta, que o que lá está é verdade. Não aceita
+     «(por indicar)» nem um NIF que não confira (o PLACEHOLDER-NIF de hoje
+     passava), nem a falta do email ou da forma jurídica. Com domínio, pára a
+     publicação; na pré-visualização, avisa. */
+  const fj = String(DEF.empresa.forma_juridica ?? '');
+  const formaJuridica = /unipessoal/i.test(fj) ? 'unipessoal' : /quotas|\blda\b/i.test(fj) ? 'lda'
+    : /an[óo]nima|\bs\.?a\.?$/i.test(fj) ? 'sa' : /nome individual|\beni\b/i.test(fj) ? 'eni' : undefined;
+  const ident = verificarIdentificacao({
+    nome: DEF.empresa.nome_completo,
+    formaJuridica,
+    nif: DEF.empresa.nif,
+    morada: `${l.morada}, ${l.codigo_postal} ${l.localidade}`,
+    email: DEF.contactos.email,
+    telefone: DEF.contactos.telefone,
+    sociedade: { sede: `${l.morada}, ${l.codigo_postal} ${l.localidade}`, conservatoria: DEF.empresa.conservatoria, matricula: DEF.empresa.matricula, capital: DEF.empresa.capital_social },
+  }, { modo: 'avisar', ecra: 'Dados do stand' });
+  for (const p of ident.problemas) {
+    if (p.nivel === 'erro') bloqueiaComDominio('data/definicoes.json', `identificação (${p.campo}): ${p.mensagem}`);
+    else aviso('data/definicoes.json', `identificação (${p.campo}): ${p.mensagem}`);
+  }
+  if (/\(por indicar\)/.test(termos)) bloqueiaComDominio('/termos/index.html', 'a identificação do prestador diz «(por indicar)» (DL 7/2004 art. 10.º)');
+}
+
+/* 11c. OS DADOS DE EXEMPLO (auditoria legal de out 2026). Uma viatura com
+        «Dados de exemplo» tem preço, quilómetros e datas inventados: num
+        domínio, isso é publicidade enganosa (DL 57/2008, art. 7.º) e não se
+        publica. Na pré-visualização publica-se, mas TODAS as páginas têm de
+        abrir com a faixa que o diz, e a matrícula tem de ser claramente
+        fictícia (uma inventada com formato válido pode ser a de outro carro). */
+{
+  const FAIXA_DEMO = 'Site em construção — viaturas e dados de exemplo';
+  const demo = readdirSync(join(RAIZ, 'data/viaturas')).filter((x) => x.endsWith('.json'))
+    .map((f) => ({ f, v: JSON.parse(readFileSync(join(RAIZ, 'data/viaturas', f), 'utf8')) }))
+    .filter(({ v }) => v.demonstracao === true && !v.oculta);
+  if (demo.length) {
+    bloqueiaComDominio('data/viaturas', `${demo.length} viatura${demo.length === 1 ? '' : 's'} com dados de exemplo (${demo.map(({ f }) => f.replace(/\.json$/, '')).join(', ')}): ponha os dados reais e desligue «Dados de exemplo», ou esconda-as`);
+    for (const f of paginas) {
+      if (!readFileSync(f, 'utf8').includes(FAIXA_DEMO)) mal(rel(f), `há viaturas com dados de exemplo e a página não tem a faixa «${FAIXA_DEMO}»`);
+    }
+    for (const { f, v } of demo) {
+      if (!/X/.test(String(v.matricula ?? ''))) aviso(`data/viaturas/${f}`, `dados de exemplo com uma matrícula de formato real («${v.matricula}»): use «XX-00-XX», ou ponha os dados reais e desligue «Dados de exemplo»`);
+    }
+  }
 }
 
 /* 12. dados das viaturas: os sete campos do DL 74/93, e sem repetições.
