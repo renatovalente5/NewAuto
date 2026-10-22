@@ -147,9 +147,10 @@ svg { flex: none; }
 ::view-transition-old(foto-viatura) { z-index: 1; animation: vt-cede .6s linear both; }
 ::view-transition-new(foto-viatura) { animation: none; }
 /* NA IDA para a ficha, nada de se fundirem depois de pousar (a imagem
-   «ajustava-se» já parada). O transicao.js diz se a fotografia da ficha já
-   estava pronta no arranque: «vt-nitida» — a do cartão apaga-se em 0,18 s e
-   voa a nítida; «vt-espera» — voa a do cartão, inteira, até ao fim. */
+   «ajustava-se» já parada). O transicao.js diz quando a fotografia da ficha
+   está pronta: «vt-espera» enquanto não está (voa a do cartão, inteira),
+   «vt-nitida» quando está — a do cartão apaga-se em 0,18 s, em pleno voo, e
+   pousa a nítida. Pré-carregada (ao passar o rato), isso é logo no arranque. */
 html.vt-espera::view-transition-old(foto-viatura) { animation: none; }
 html.vt-nitida::view-transition-old(foto-viatura) { animation: vt-sai .18s linear both; }
 ::view-transition-old(root), ::view-transition-old(painel):only-child, ::view-transition-old(foto-viatura):only-child {

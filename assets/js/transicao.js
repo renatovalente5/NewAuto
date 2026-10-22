@@ -87,7 +87,9 @@
   addEventListener('pagereveal', (e) => {
     const para = ler(PARA);
     const de = ler(DE);
+    const html = document.documentElement;
     limpar();
+    html.classList.remove('vt-espera', 'vt-nitida');
     if (!e.viewTransition) return;
     const aqui = fichaDe(location.href);
     const p = palco();
@@ -105,12 +107,16 @@
     /* Na ida para uma ficha: com a fotografia da galeria já carregada neste
        instante (pré-carregada ao passar o rato), voa ela, a nítida, desde o
        arranque e pousa sem trocar de imagem («vt-nitida» no estilo.css). Sem
-       ela, voa a do cartão, inteira, até ao fim («vt-espera»). Não se troca a
-       meio: no Safari a imagem de chegada é a deste instante e não se
-       actualiza — trocar quando a fotografia chegasse mostrava um vazio. */
-    const html = document.documentElement;
+       ela, voa a do cartão («vt-espera») e cede-lhe o lugar em pleno voo
+       logo que ela esteja pronta a pintar — a imagem de chegada é viva, no
+       Chrome e no Safari (provado em velocidade real; em câmara lenta, por
+       playbackRate, o Safari mostra um vazio que não existe). */
     const img = p && !postos.some(([el]) => el === p) ? p.querySelector('img') : null;
-    if (img) html.classList.add(img.complete && img.naturalWidth > 0 ? 'vt-nitida' : 'vt-espera');
-    e.viewTransition.finished.finally(() => { limpar(); html.classList.remove('vt-espera', 'vt-nitida'); });
+    let emVoo = true;
+    if (img) {
+      if (img.complete && img.naturalWidth > 0) html.classList.add('vt-nitida');
+      else { html.classList.add('vt-espera'); img.decode().then(() => { if (emVoo) html.classList.add('vt-nitida'); }, () => {}); }
+    }
+    e.viewTransition.finished.finally(() => { emVoo = false; limpar(); html.classList.remove('vt-espera', 'vt-nitida'); });
   });
 })();
