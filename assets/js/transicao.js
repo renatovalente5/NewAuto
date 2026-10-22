@@ -47,6 +47,14 @@
        ficar a pairar por cima dela até ao fim do voo. */
     const n = foto.querySelector('.cartao__fotos');
     if (n) { n.style.setProperty('visibility', 'hidden'); postos.push([n, 'visibility']); }
+    /* Sem o zoom de passar o rato: com ele, a fotografia do cartão ia 4,5 %
+       maior do que a da galeria, e ao pousar as duas não batiam — a imagem
+       encolhia depois de chegar. */
+    const img = foto.querySelector('img');
+    if (img) {
+      img.style.setProperty('transition', 'none'); img.style.setProperty('transform', 'none');
+      postos.push([img, 'transition'], [img, 'transform']);
+    }
   };
 
   const fotoDoCartao = (slug) => {
@@ -94,6 +102,15 @@
       const f = fotoDoCartao(de);
       if (f && aVista(f)) porNoCartao(f);
     }
-    e.viewTransition.finished.finally(limpar);
+    /* Na ida para uma ficha: com a fotografia da galeria já carregada neste
+       instante (pré-carregada ao passar o rato), voa ela, a nítida, desde o
+       arranque e pousa sem trocar de imagem («vt-nitida» no estilo.css). Sem
+       ela, voa a do cartão, inteira, até ao fim («vt-espera»). Não se troca a
+       meio: no Safari a imagem de chegada é a deste instante e não se
+       actualiza — trocar quando a fotografia chegasse mostrava um vazio. */
+    const html = document.documentElement;
+    const img = p && !postos.some(([el]) => el === p) ? p.querySelector('img') : null;
+    if (img) html.classList.add(img.complete && img.naturalWidth > 0 ? 'vt-nitida' : 'vt-espera');
+    e.viewTransition.finished.finally(() => { limpar(); html.classList.remove('vt-espera', 'vt-nitida'); });
   });
 })();

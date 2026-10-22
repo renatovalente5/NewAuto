@@ -248,7 +248,10 @@ function fonteFoto(v, n, uso = 'galeria') {
 function foto(v, n, { uso = 'galeria', sizes, prioritaria = false, alt = '', classe = '' }) {
   const f = fonteFoto(v, n, uso);
   const carregar = prioritaria ? 'fetchpriority="high"' : 'loading="lazy"';
-  return `<picture${classe ? ` class="${classe}"` : ''}>${f.srcset ? `<source type="image/webp" srcset="${f.srcset}" sizes="${sizes}">` : ''}<img src="${f.src}" alt="${esc(alt)}" width="${f.w}" height="${f.h}" ${carregar} decoding="async"></picture>`;
+  /* A fotografia prioritária (a primeira da galeria, os primeiros cartões)
+     pinta-se logo que chega: na transição entre páginas, a da galeria tem de
+     estar na imagem do primeiro instante. */
+  return `<picture${classe ? ` class="${classe}"` : ''}>${f.srcset ? `<source type="image/webp" srcset="${f.srcset}" sizes="${sizes}">` : ''}<img src="${f.src}" alt="${esc(alt)}" width="${f.w}" height="${f.h}" ${carregar} decoding="${prioritaria ? 'sync' : 'async'}"></picture>`;
 }
 
 function urlPartilha(v) {

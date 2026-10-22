@@ -139,12 +139,19 @@ svg { flex: none; }
 .ficha .painel { view-transition-name: painel; }
 ::view-transition-group(foto-viatura) { animation-duration: .6s; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
 ::view-transition-old(foto-viatura), ::view-transition-new(foto-viatura) { height: 100%; object-fit: cover; }
-/* A fotografia de partida voa POR CIMA, inteira, e só cede à de chegada no
-   fim. Cruzadas desde o início, as duas (desalinhadas pelo zoom do cartão ao
-   passar o rato, e a de chegada às vezes ainda a carregar) davam uma
-   fotografia desbotada a meio do voo. */
+/* A fotografia de partida voa POR CIMA, inteira: cruzadas desde o início, as
+   duas (a de chegada às vezes ainda a carregar) davam uma fotografia
+   desbotada a meio do voo. No «voltar», as duas já estão carregadas e com o
+   mesmo enquadramento (o zoom do cartão tira-o o transicao.js), e a de partida
+   cede no fim. */
 ::view-transition-old(foto-viatura) { z-index: 1; animation: vt-cede .6s linear both; }
 ::view-transition-new(foto-viatura) { animation: none; }
+/* NA IDA para a ficha, nada de se fundirem depois de pousar (a imagem
+   «ajustava-se» já parada). O transicao.js diz se a fotografia da ficha já
+   estava pronta no arranque: «vt-nitida» — a do cartão apaga-se em 0,18 s e
+   voa a nítida; «vt-espera» — voa a do cartão, inteira, até ao fim. */
+html.vt-espera::view-transition-old(foto-viatura) { animation: none; }
+html.vt-nitida::view-transition-old(foto-viatura) { animation: vt-sai .18s linear both; }
 ::view-transition-old(root), ::view-transition-old(painel):only-child, ::view-transition-old(foto-viatura):only-child {
   animation: vt-sai .2s cubic-bezier(.4, 0, 1, 1) both;
 }
