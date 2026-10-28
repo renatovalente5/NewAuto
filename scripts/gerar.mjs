@@ -411,9 +411,10 @@ function rodape() {
    que o Renato escolheu, 22 out 2026): o ícone pequeno de livro e o texto, com
    a letra, o tamanho e a cor das outras ligações legais do rodapé — sem caixa,
    sem fundo — e na mesma linha delas. Nunca mais pequeno nem mais apagado do
-   que as vizinhas. O CSS da biblioteca vai inline na cabeça de cada página. */
+   que as vizinhas. O CSS da biblioteca vai inline na cabeça de cada página.
+   Só no rodapé: o Renato não o quer também na página de contactos (27 out
+   2026); a lei pede-o na página de entrada, e o rodapé dela cumpre isso. */
 const LIVRO_RODAPE = legal('livro', livroReclamacoes());
-const LIVRO_PAGINA = legal('livro', livroReclamacoes());
 const CSS_LIVRO = livroCss();
 
 /* O aviso foi pedido pelo cliente. Este site não instala cookies nenhum — a
@@ -1243,9 +1244,6 @@ function paginaContactos() {
         <span>Segue-nos</span>
         ${REDES.map((r) => `<a href="${esc(r.url)}" target="_blank" rel="noopener" aria-label="${r.nome} da NewAuto">${r.k === 'instagram' ? ic.ig : ic.fb}</a>`).join('')}
       </div>
-      <!-- O Livro de Reclamações também na página de contactos, como o manual
-           da DGC pede. -->
-      <div class="contactos__livro">${LIVRO_PAGINA}</div>
     </div>
     <div class="contactos__mapa">${mapa()}</div>
   </div>

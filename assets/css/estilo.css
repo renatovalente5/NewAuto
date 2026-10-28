@@ -864,7 +864,6 @@ html.vt-nitida::view-transition-old(foto-viatura) { animation: vt-sai .18s linea
 .contactos__redes span { margin-right: .3rem; font-weight: 600; }
 .contactos__redes a { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: var(--branco); box-shadow: 0 0 0 1px var(--linha); color: var(--tinta); }
 .contactos__redes a:hover { box-shadow: 0 0 0 1.5px var(--tinta); }
-.contactos__livro { margin-top: 1.25rem; font-weight: 600; color: var(--tinta); }
 .contactos__redes svg { width: 20px; height: 20px; }
 
 .mapa { position: relative; overflow: hidden; min-height: 460px; border-radius: var(--raio-g); background: var(--carvao); color: var(--claro); display: grid; place-items: center; }
