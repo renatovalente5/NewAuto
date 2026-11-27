@@ -535,6 +535,33 @@
   }
 
   /* ------------------------------------------------------------------------
+     O que está fixo em baixo sai de cena quando chega o rodapé, em vez de a
+     página ganhar espaço vazio por baixo dele: a barra de contacto da ficha
+     (no telemóvel) logo que o rodapé, que tem os mesmos contactos, lhe chega;
+     o aviso de cookies quando a última linha (as ligações legais e o Livro de
+     Reclamações) lhe passa por baixo. Voltam ao subir.
+  ------------------------------------------------------------------------ */
+  const rodape = $('.rodape');
+  const ultimaLinha = $('.rodape__legal');
+  const fimDoRodape = () => {
+    if (!rodape || !ultimaLinha) return;
+    const alto = innerHeight;
+    // onde o fixo fica quando está à vista (pode estar a meio de deslizar)
+    const topoDe = (el) => alto - el.offsetHeight - (parseFloat(getComputedStyle(el).bottom) || 0);
+    const bf = $('#barra-fixa');
+    if (bf && bf.offsetHeight) bf.classList.toggle('no-fim', rodape.getBoundingClientRect().top < topoDe(bf));
+    const ck = $('#cookies');
+    if (ck && !ck.hidden) {
+      const r = ultimaLinha.getBoundingClientRect(), q = ck.getBoundingClientRect();
+      ck.classList.toggle('no-fim', r.top < alto && r.bottom > topoDe(ck) && r.left < q.right && r.right > q.left);
+    }
+  };
+  addEventListener('scroll', fimDoRodape, { passive: true });
+  addEventListener('resize', fimDoRodape);
+  if ('ResizeObserver' in window) new ResizeObserver(fimDoRodape).observe(document.body);
+  fimDoRodape();
+
+  /* ------------------------------------------------------------------------
      10. Aviso de cookies. Este site não instala nenhum; a única coisa que
          precisa de consentimento é o mapa. Aceitar carrega-o (ou deixa-o
          autorizado); recusar retira a autorização. Os dois custam um clique.
@@ -542,13 +569,12 @@
   const cookies = $('#cookies');
   if (cookies) {
     const CHAVE = 'na:aviso';
-    /* Enquanto o aviso está aberto, a página ganha por baixo a altura dele: no
-       fim da página, o aviso não pode tapar o botão do Livro de Reclamações
-       (nem nada do rodapé). */
+    /* No fim da página, o aviso não pode tapar o botão do Livro de Reclamações
+       (nem nada do rodapé): sai de cena quando a última linha lhe chega
+       (fimDoRodape, mais acima). */
     const mostrar = (sim) => {
       cookies.hidden = !sim;
-      document.body.classList.toggle('com-aviso', sim);
-      if (sim) document.body.style.setProperty('--aviso-altura', `${cookies.offsetHeight}px`);
+      if (sim) fimDoRodape();
     };
     if (!lido(CHAVE)) setTimeout(() => mostrar(true), 700);
     $$('[data-cookies]', cookies).forEach((b) => b.addEventListener('click', () => {
